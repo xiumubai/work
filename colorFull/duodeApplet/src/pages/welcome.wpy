@@ -1,0 +1,79 @@
+<template>
+  <view class="container">
+    <topNav title="多得课堂"></topNav>
+    <view class="main-content bg-ff">
+      <view class="welcome-container">
+        <image class="text" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_welcome_text.png"/>
+        <image class="img" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_welcome_img.png"/>
+        <button
+          class="btn"
+          open-type="getUserInfo" 
+          type="primary" lang="zh_CN" 
+          bindgetuserinfo="loggedIn"
+          >开始吧</button>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+import request from '@/utils/request'
+export default class Welcome extends wepy.page {
+  config = {
+    navigationBarTitleText: '多得课堂'
+  }
+  components = {
+    topNav: topNav
+  }
+  onLoad () {
+  }
+  async loggedIn(e) {
+    // 用户未授权，进行授权，授权成功，返会用户授权后的用户信息
+    let userInfoResponse = await request.updateUser()
+    if (userInfoResponse.statusCode === 200) {
+      let userInfo = userInfoResponse.data.data
+      if (!userInfo.isFollowedTag) {
+        // 用户未关注标签,跳转到标签关注页面
+        wepy.reLaunch({
+          url: '/pages/follow_tags'
+        })
+      } else {
+        // 用户关注标签,跳转到首页
+        wepy.reLaunch({
+          url: '/pages/index'
+        })
+      }
+    }
+  }
+}
+</script>
+<style lang="less">
+  .welcome-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    .text{
+      width: 392rpx;
+      height: 172rpx;
+      margin-top: 160rpx;
+    }
+    .img{
+      width: 426rpx;
+      height: 322rpx;
+      margin-top: 60rpx;
+      margin-bottom: 160rpx;
+    }
+    .btn{
+      width: 400rpx;
+      height: 110rpx;
+      line-height: 110rpx;
+      background: #F7B500;
+      border-radius: 54rpx;
+      color: #ffffff;
+      font-size: 48rpx;
+      box-shadow: 0 8rpx #FF8D20; 
+    }
+  }
+</style>

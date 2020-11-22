@@ -1,0 +1,173 @@
+<template>
+  <view class="booklist">
+    <view class="book-mes br5" bindtap="bindLinkToBookList">
+      <view class="left img">
+        <image src="{{list.faceUrl}}"/>
+      </view>
+      <view class="right">
+        <view class="title-content">
+          <view class="text ellipsis-l1">{{list.gradeName}}{{list.termName}}</view>
+          <view class="rignt-content">
+            <view class="sub-title">切换课本</view>
+            <view class="icon-right"></view>
+          </view>
+        </view>
+        <view class="sub-title">{{list.publisherName}}</view>
+      </view>
+    </view>
+    <view class="chapter-container">
+      <repeat for="{{list.chapters}}" item="item" key="key" index="index">
+        <view class="chapter-item">
+          <view class="chapter-title">{{item.name}}</view>
+          <view class="ul br5">
+            <repeat for="{{item.children}}" item="chapter" key="key" index="index">
+              <view class="li" bindtap="bindChangeChapter({{chapter.id}})">
+                <view class="title">{{chapter.name}}</view>
+                <view class="li-item" wx:if="{{chapter.achievement.hasOwnProperty('starNumber')}}">
+                  <van-rate count="1" size="16" readonly value="{{chapter.achievement.score}}" icon="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/xingxing_active.png" void-icon="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/xingxing.png"/>
+                  <view class="number">{{chapter.achievement.starNumber}}</view>
+                  <view class="progressbar"><progress percent="{{chapter.achievement.starNumber / 25 * 100}}" border-radius="10" stroke-width="5" color="#FFC662" backgroundColor="#CCC" /></view>
+                </view>
+                <view wx:else class="li-item-nodata">
+                  <view class="rate"><van-rate count="1" size="16" readonly value="0" icon="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/xingxing_active.png" void-icon="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/xingxing.png"/></view>
+                  <view class="text">未获得</view>
+                </view>
+              </view>
+            </repeat>
+          </view>
+        </view>
+      </repeat>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import api from '@/api/api'
+import request from '@/utils/request'
+export default class PronounceItem extends wepy.component {
+  props = {
+    subject: {
+      type: String,
+      value: ''
+    }
+  }
+  data = {
+    bookId: '',
+    list: {}
+  }
+  methods = {
+    bindLinkToBookList () {
+      this.type = 4
+      this.$parent.$parent.globalData.bookOptionsType = parseInt(this.type)
+      wx.navigateTo({
+        url: 'book_list?subject=' + this.list.subject + '&gradeId=' + this.list.gradeId + '&term=' + this.list.term + '&apiUrl=' + api.pronouncePracticeBooks
+      })
+    },
+    bindChangeChapter (nodeId) {
+      wx.navigateTo({
+        url: 'pronounce_english?subject=' + this.list.subject + '&nodeId=' + nodeId
+      })
+    }
+  }
+  async onLoad() {
+    await this.fetchList()
+  }
+  async fetchList () {
+    let res = await request.authRequest({
+      url: api.pronounceChapters,
+      data: {
+        subject: this.subject,
+        bookId: this.bookId
+      }
+    })
+    if (res.statusCode === 200) {
+      this.list = res.data.data
+      this.$apply()
+    }
+  }
+  async getBookId () {
+    this.type = 4
+    await this.$parent.$parent.globalData.bookOptionsParams.map(v => {
+      if (v.type === this.type && v.hasOwnProperty('bookId')) {
+        this.bookId = v.bookId
+        this.$apply()
+        this.fetchList()
+      }
+    })
+  }
+}
+</script>
+<style lang="less">
+  .booklist{
+    padding: 20px 15px;
+    .book-mes{
+      background: #fff;
+      display: flex;
+      padding: 10px;
+      .left{
+        flex: 75px 0 0;
+        height: 100px;
+        margin-right: 17px;
+      }
+      .right{
+        flex: 1;
+        .title-content {
+          margin-bottom: 10px;
+          .text{
+            font-size: 18px;
+            font-weight: bold;
+          }
+        }
+        .sub-title{
+          font-size: 14px;
+          color: #999;
+        }
+      }
+    }
+    .chapter-container{
+      .chapter-item{
+        .chapter-title{
+          line-height: 62px;
+          font-weight: bold;
+        }
+        .ul{
+          display: flex;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          .li{
+            background: #fff;
+            padding: 10px;
+            width:48%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+            .title{
+              margin-bottom: 10px;
+            }
+            .li-item{
+              display: flex;
+              align-items: center;
+              .number{
+                color: #FFC662;
+                margin-right: 10px;
+              }
+              .progressbar{
+                flex: 1
+              }
+            }
+            .li-item-nodata{
+              display: flex;
+              justify-content: flex-start;
+              align-items: center;
+              .rate{
+                margin-right: 10px;
+              }
+              .text{
+                color: #ccc;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+</style>

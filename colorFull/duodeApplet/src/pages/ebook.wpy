@@ -1,0 +1,385 @@
+<template>
+  <view class="container">
+    <topNav title="电子课本" isShowBack="true"></topNav>
+    <veiw class="main-content">
+      <view class="reading-container">
+        <view class="title-content" bindtap="bindLinkToBookList" wx:if="{{noChange !== '0'}}">
+          <view class="text ellipsis-l1">{{ebook.chapter.name}} {{ebook.node.name}}</view>
+          <view class="rignt-content">
+            <view class="sub-title">切换</view>
+            <view class="icon-right"></view>
+          </view>
+        </view>
+        
+        <view class="book-container">
+          <swiper class="swiper-container" bindchange="bindSwiperChange" current="{{swiperIndex}}">
+            <repeat for="{{ebookList}}" item="book" index="index" key="key">
+              <swiper-item class="swiper-item">
+                <view class="avatar" id="book_{{index}}">
+                  <image src="{{book.imageUrl}}" bindload="imageLoad"/>
+                  <repeat for="{{book.lines}}" item="item" index="index" key="key">
+                    <view class="pointe" bindtap="play({{item.description}}, {{item.soundUrl}})" style="top: {{item.details.details.origin.y * 100}}%;left: {{item.details.details.origin.x * 100}}%;width: {{item.details.details.size.width * 100}}%;height: {{item.details.details.size.height * 100}}%"
+                    ></view>
+                  </repeat>
+                </view>
+              </swiper-item>
+            </repeat>
+          </swiper>
+        </view>
+        <view class="tips">
+          <view class="text">左右滑可翻页,黑色边框部分可点击</view>
+          <view class="img"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/reading/shoushi@2x.png"/></view>
+        </view>
+        <view class="footer">
+          <view class="btn-nostyle">
+            <view>
+              <view bindtap="stop" class="reading" style="width: 62px; height: 62px;" wx:if="{{isPlay}}">
+                <image style="width: 18px; height: 24px;" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/listen-write/icon_zanting@2x.png"/>
+              </view>
+              <view bindtap="playAll" class="reading" style="width: 62px; height: 62px;" wx:else>
+                <image style="width: 18px; height: 24px;" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/listen-write/icon_bofang@2x.png"/>
+              </view>
+            </view>
+            <view class="text" wx:if="{{isPlay}}">暂停</view>
+            <view class="text" wx:else>播放</view>
+          </view>
+        </view>
+      </view>
+    </veiw>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import api from '@/api/api'
+import request from '@/utils/request'
+import topNav from '@/components/topNav'
+export default class Ebook extends wepy.page {
+  config = {
+    navigationBarTitleText: '智能点读'
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    height: 0,
+    nodeId: '',
+    bookId: '',
+    noChange: '1',
+    myaudio: wx.createInnerAudioContext(),
+    subject: 3,
+    ebook: {},
+    isPlay: false,
+    isAllPlay: false,
+    ebookList: [],
+    audioList: [],
+    audioIndex: 0,
+    swiperIndex: 1,
+    pageNumberRight: 0,
+    pageNumberLeft: 0
+  }
+  async onLoad (options) {
+    this.subject = options.subject
+    this.nodeId = options.nodeId
+    this.noChange = options.noChange
+    this.$apply()
+    await this.fetchEbookContent()
+    this.myaudio = wx.createInnerAudioContext()
+    this.myaudio.onEnded(() => {
+      if (this.isAllPlay) {
+        if (this.audioIndex < this.audioList.length - 1) {
+          this.audioIndex += 1
+          this.$apply()
+          this.myaudio.src = this.audioList[this.audioIndex].soundUrl
+          this.myaudio.play()
+        } else {
+          this.isPlay = false
+          this.audioIndex = 0
+          this.$apply()
+        }
+      } else {
+        this.isPlay = false
+        this.$apply()
+      }
+    })
+  }
+  onHide () {
+    // this.fecthProgress()
+  }
+  onUnload () {
+    this.myaudio.stop()
+    this.myaudio.destroy()
+    this.isPlay = false
+    this.$apply()
+    this.fecthProgress()
+  }
+  methods = {
+    imageLoad (e) {
+      this.imgWidth = e.detail.width
+      this.imgHeight = e.detail.height
+    },
+    play (description, soundUrl) {
+      if (!this.isPlay) {
+        this.myaudio.src = soundUrl
+        this.myaudio.play()
+        this.isPlay = true
+        this.isAllPlay = false
+        this.audioIndex = 0
+      }
+    },
+    playAll () {
+      if (this.audioList.length > 0) {
+        this.myaudio.src = this.audioList[this.audioIndex].soundUrl
+        this.myaudio.play()
+        this.isAllPlay = true
+        this.isPlay = true
+      }
+    },
+    stop () {
+      this.myaudio.stop()
+      this.isPlay = false
+      if (!this.isAllPlay) {
+        this.audioIndex = 0
+      }
+    },
+    bindLink (url, nodeId) {
+      if (nodeId !== '0') {
+        wepy.navigateTo({
+          url: url + '?nodeId=' + nodeId
+        })
+      } else {
+        wepy.switchTab({
+          url: url
+        })
+      }
+    },
+    bindLinkToBookList () {
+      wx.navigateBack({
+        delta: 1
+      })
+    },
+    bindSwiperChange (e) {
+      let current = e.detail.current
+      this.audioIndex = 0
+      this.isPlay = false
+      this.myaudio.stop()
+      if (e.detail.source === 'touch') {
+        if (this.swiperIndex < current) {
+          // 向右滑动
+          if (this.ebookList[current + 1]) {
+            this.audioList = this.ebookList[current].lines
+            this.$apply()
+            this.swiperIndex = current
+            this.pageNumberRight = this.ebookList[current + 1].pageNumber
+            this.pageNumberLeft = this.ebookList[current - 1].pageNumber
+            this.ebook = this.ebookList[current]
+            this.nodeId = this.ebookList[current].nodeId
+            this.$apply()
+            wx.setStorageSync('bookNodeId', this.ebookList[current].nodeId)
+          } else {
+            this.fetchEbookContent2('right', current)
+          }
+        } else {
+          // 向左滑动
+          if (this.ebookList[current - 1]) {
+            this.audioList = this.ebookList[current].lines
+            this.$apply()
+            this.swiperIndex = current
+            this.pageNumberRight = this.ebookList[current + 1].pageNumber
+            this.pageNumberLeft = this.ebookList[current - 1].pageNumber
+            this.ebook = this.ebookList[current]
+            this.nodeId = this.ebookList[current].nodeId
+            this.$apply()
+            wx.setStorageSync('bookNodeId', this.ebookList[current].nodeId)
+          } else {
+            this.fetchEbookContent2('left', current)
+          }
+        }
+      } else {
+        this.swiperIndex = current
+      }
+    }
+  }
+  async fetchEbookContent2 (pop, index) {
+    let res = await request.authRequest({
+      url: api.ebookPages,
+      data: {
+        subject: this.subject,
+        nodeId: this.nodeId,
+        bookId: this.bookId,
+        pageNumber: pop === 'right' ? this.pageNumberRight : this.pageNumberLeft
+      }
+    }, false)
+    if (res.statusCode === 200) {
+      let data = res.data.data
+      this.swiperIndex = index
+      this.audioIndex = 0
+      if (pop === 'right') {
+        // 在尾部添加
+        if (data.down !== null) {
+          this.audioList = data.page.lines
+          this.$apply()
+          this.ebook = data.page
+          this.nodeId = data.page.nodeId
+          if (data.up !== null) {
+            this.pageNumberLeft = data.up.pageNumber
+          }
+          if (data.down !== null) {
+            this.ebookList.push(data.down)
+            this.pageNumberRight = data.down.pageNumber
+          }
+          wx.setStorageSync('bookNodeId', data.page.nodeId)
+          this.$apply()
+        }
+      } else if (pop === 'left') {
+        // 在头部添加
+        if (data.up !== null) {
+          this.audioList = data.page.lines
+          this.$apply()
+          this.ebook = data.page
+          this.nodeId = data.page.nodeId
+          if (data.up !== null) {
+            this.pageNumberLeft = data.up.pageNumber
+          }
+          if (data.down !== null) {
+            this.pageNumberRight = data.down.pageNumber
+          }
+          this.$apply()
+          wx.setStorageSync('bookNodeId', data.page.nodeId)
+          this.ebookList.unshift(data.up)
+          this.swiperIndex = 1
+          this.$apply()
+        }
+      }
+    }
+  }
+  // 首次加载数据
+  async fetchEbookContent () {
+    let res = await request.authRequest({
+      url: api.ebookPages,
+      data: {
+        subject: this.subject,
+        nodeId: this.nodeId
+      }
+    }, false)
+    if (res.statusCode === 200) {
+      let data = res.data.data
+      if (data.hasOwnProperty('page')) {
+        if (data.page.lines.length > 0) {
+          this.audioList = data.page.lines
+          this.$apply()
+        }
+        this.bookId = data.page.bookId
+        this.ebook = data.page
+        this.nodeId = data.page.nodeId
+        if (data.up !== null) {
+          this.ebookList.push(data.up)
+          this.pageNumberLeft = data.up.pageNumber
+        } else {
+          this.swiperIndex = 0
+        }
+        this.ebookList.push(data.page)
+        if (data.down !== null) {
+          this.ebookList.push(data.down)
+          this.pageNumberRight = data.down.pageNumber
+        }
+        this.$apply()
+      }
+    }
+  }
+  async fecthProgress () {
+    let res = await request.authRequest({
+      url: api.ebookProgress,
+      method: 'POST',
+      data: {
+        pageId: this.ebook.id
+      }
+    })
+    if (res.statusCode === '200') {
+      console.log('点读状态记录成功')
+    }
+  }
+  // 判断是否是空对象
+  isEmptyObject(o) {
+    let empty = false
+    if (Object.keys(o).length === 0) {
+      empty = true
+    }
+    return empty
+  }
+}
+</script>
+<style lang="less">
+
+.reading-container{
+  .title-content{
+    padding: 20px 25px;
+    margin-bottom: 0;
+  }
+  .book-container{
+    padding: 0 15px;
+    display: flex;
+    justify-content: center;
+    .swiper-container{
+      display: flex;
+      height: 896rpx;
+      width: 100%;
+      .swiper-item{
+        .avatar{
+          display: inline-block;
+          width: 100%;
+          height: 100%;
+          background-size: contain;
+          background-repeat: no-repeat;
+          position: relative;
+          .pointe{
+            position: absolute;
+            border: 1px solid #333;
+          }
+        }
+      }
+    }
+  }
+  .tips{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0 20px 0;
+    .text{
+      font-size: 12px;
+      color: #999;
+      margin-right: 5px;
+    }
+    .img{
+      width: 15px;
+      height: 20px;
+    }
+  }
+  .footer{
+    height: 109px;
+    margin: 0 15px 36px 15px;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    background: #fff;
+    .btn-nostyle{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 10px;
+      .text{
+        font-size: 12px;
+        color: #666;
+        margin-top: 10px;
+      }
+    }
+    .reading{
+      border-radius: 50%;
+      background: #FFC662;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+}
+
+</style>

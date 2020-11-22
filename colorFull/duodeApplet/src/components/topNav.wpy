@@ -1,0 +1,105 @@
+<template>
+  <view class="fix-navbar" style="height:{{startBarHeight+navgationHeight}}px">
+    <view class='startBar' style="height:{{startBarHeight}}px"></view>
+    <view class="header" style="height:{{navgationHeight}}px;line-height: {{navgationHeight}}px;top: {{startBarHeight}}px">
+      <view class="header-content">
+        <view class="back icon-back" wx:if="{{isShowBack === 'true'}}" bindtap="goback"></view>
+        <view class="title">{{title}}</view>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+/**
+ * 返回问题，返回页面的第几集
+ * isShowBack：是否有返回按钮
+ * backHome： 是否直接返回首页
+*/
+import wepy from 'wepy'
+export default class TopNav extends wepy.component {
+  props = {
+    title: {
+      type: String,
+      value: '头部标题'
+    },
+    isShowBack: {
+      type: [String, Boolean],
+      value: 'false'
+    },
+    backHome: {
+      type: [Boolean, String],
+      value: false
+    },
+    backReading: {
+      type: [Boolean, String],
+      value: false
+    }
+  }
+  data = {
+    startBarHeight: 0,
+    navgationHeight: 44
+  }
+  methods = {
+    goback() {
+      if (this.backHome) {
+        wx.switchTab({
+          url: '/pages/index'
+        })
+      } else if (this.backReading === 'true') {
+        wx.redirectTo({
+          url: '/pages/reading'
+        })
+      } else {
+        wx.navigateBack({
+          delta: 1
+        })
+      }
+    }
+  }
+  onLoad () {
+    this.startBarHeight = this.$root.$parent.globalData.startBarHeight
+    this.navgationHeight = this.$root.$parent.globalData.navgationHeight
+    this.$apply()
+  }
+}
+</script>
+<style lang="less">
+.fix-navbar{
+  z-index: 999999;
+  .header {
+    position: fixed;
+    width: 100%;
+    z-index: 99999;
+    background: #ffffff;
+  }
+  .startBar{
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: #ffffff;
+    z-index: 99999;
+  }
+  .header-content{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .title{
+    flex: 1;
+    font-size: 38rpx;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .icon-back{
+    width: 58rpx;
+    height: 38rpx;
+    left: 20rpx;
+    position: absolute;
+    background-size: contain;
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAACVUlEQVR4XuXb3WoTQRQH8HPCJk8g7YWgKFpvms+9Uqq+gxfe9e2KfY9q9GoWMlioFyIKAaHgC2TDKQtZCGVNlp2Z89HkOrPJ/zfnbHaGDIKx13Q6fYqIn9br9cfFYrEM/foYegHO8XmePyGir4j4mIh+I+I759yfkO9gBmA0Gj3LsuxzFb4OTETLsizfeu9/dUUwATCbzV4AwBwRjxqCXjvnTh8sQDXz/X7/GwAc3w9JRLebCvjxIAFSh6/Q1LYAR3i1AFzhVQJwhlcHwB1eFYBEeDUAUuFVAEiGFweQDi8KoCG8GICW8CIAmsKzA2gLzwqgMTwbwK7wAPBvtVq98d53XtJ2XQqzALQI/957/z0kRMjYpMth7eGTVoCF8MkAxuPxSZZlV03bWJueFy377ZaJ3gKb8HMAeNTQm9UNT0346BVgLXxUAIvhowFYDR8FwHL4YADr4YMB8jy/AYBXTU9iRHReFMVFyFMax9ign8GDr4BqhqwjBFVAXaKWEaIAWK6EaABWEaICWESIDmANIQnAFoL6JXEygArBwqZIUoCWCGIbosGPwm0fVbVuibMB7KuEGP/2ajsZ99+XvAW2P1BjJbACaKwEdgBtCCIAmhDEALQgiAJoQBAHkEZQASCJoAZACkEVgASCOgBuBJUAbRAQ8bVz7mfXNUA9Ti3APgQA+AsAZ6EIqgE4ENQDVAiTyeRlr9f70nRqjIh8URTjrq1gAuB/lXAw5wbr2d3eTzi4k6M1wnA4fD4YDC7LsvxwcGeHu/b5rnFm7gEpwrNuiqYKEHrdO4mNdF9edcO4AAAAAElFTkSuQmCC');
+    background-repeat: no-repeat;
+  }
+}
+</style>

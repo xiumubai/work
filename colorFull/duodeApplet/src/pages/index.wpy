@@ -1,0 +1,197 @@
+<template>
+  <view class="container">
+    <topNav title="多得课堂"></topNav>
+    <view class="main-content">
+      <view class="home">
+        <view class="learning-container">
+          <view class="header-container">
+            <view class="swiper-wraper">
+              <view class="banner-container">
+                <swiper
+                  class="swiper-container"
+                  indicator-dots="true"
+                  indicator-color="#D27F27"
+                  indicator-active-color="#FFFFFF"
+                  autoplay="true"
+                  circular="true"
+                  current="0">
+                  <repeat for="{{bannerList}}" key="index">
+                    <swiper-item>
+                      <view class="swiper-item bg-f3" data-id="{{item.id}}" @tap="linkToCourseDetail">
+                        <image src="{{item.faceUrl}}" mode="aspectFill"/>
+                      </view>
+                    </swiper-item>
+                  </repeat>
+                </swiper>
+              </view>
+            </view>
+            <view class="nav-container">
+              <repeat for="{{cateList}}" key="index">
+                <view class="nav-item" bindtap="bindLink({{item.linkUrl}})" data-id="{{item.id}}" data-name="{{item.name}}">
+                  <view class="img">
+                    <image src="{{item.imgUrl}}" mode="widthFix"/>
+                  </view>
+                  <view class="text">{{item.name}}</view>
+                </view>
+              </repeat>
+            </view>
+          </view>
+          <view class="nav-tab" style="min-height: {{height}}px">
+            <van-tabs swipeable line-width="24" bind:change="tabchange">
+              <!-- 英语-->
+              <van-tab title="英语">
+                <Item1 subject="3" itemType="0"></Item1>
+              </van-tab>
+              <!-- 语文 -->
+              <van-tab title="语文">
+                <Item2 subject="1" itemType="1"></Item2>
+              </van-tab>
+              <!-- 数学 -->
+              <van-tab title="数学">
+                <Item3 subject="2" itemType="2"></Item3>
+              </van-tab>
+            </van-tabs>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import api from '@/api/api'
+  import request from '@/utils/request'
+  import topNav from '@/components/topNav'
+  import Item from '@/components/learnBookItem'
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '多得课堂',
+      usingComponents: {
+        'van-tab': '../vant-weapp/tab/index',
+        'van-tabs': '../vant-weapp/tabs/index'
+      }
+    }
+    components = {
+      topNav: topNav,
+      Item1: Item,
+      Item2: Item,
+      Item3: Item
+    }
+    data = {
+      height: 0,
+      itemType: 1,
+      bannerList: [],
+      cateList: [
+        {name: '课本点读', imgUrl: 'http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/nav/1.png', linkUrl: 'ebook_chapter_list'},
+        {name: '每日听写', imgUrl: 'http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/nav/tingxie.png', linkUrl: 'dictation_chapter_list'},
+        {name: '每日一练', imgUrl: 'http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/nav/meiri.png', linkUrl: 'practice_chapter_list'},
+        {name: '发音练习', imgUrl: 'http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/nav/fayin.png', linkUrl: 'pronounce_chapter_list'}
+      ]
+    }
+    methods = {
+      linkToCourseDetail (e) {
+        let id = e.currentTarget.dataset.id
+        wx.navigateTo({
+          url: '/pages/course_detail?id=' + id
+        })
+      },
+      // 切换选项卡
+      tabchange (event) {
+        this.itemType = parseInt(event.detail.index) + 1
+        this.$apply()
+      },
+      bindLink (url) {
+        wx.navigateTo({
+          url: url
+        })
+      }
+    }
+
+    async onLoad () {
+      this.height = this.$parent.globalData.winHeight
+      this.$apply()
+      await this.fetchList()
+    }
+    onShow() {
+      this.$invoke('Item' + this.itemType, 'getBookId')
+    }
+    async fetchList () {
+      let res = await request.authRequest({
+        url: api.homeTopCourses,
+        data: {}
+      })
+      this.bannerList = res.data.data.list
+      this.$apply()
+    }
+    // 分享
+    onShareAppMessage (e) {
+      if (e.from === 'button') {
+        let title = e.target.dataset.title
+        let img = e.target.dataset.img
+        let id = e.target.dataset.id
+        return {
+          title: title,
+          path: '/pages/course_detail?id=' + id + '&backHome=true',
+          imageUrl: img + '?x-oss-process=image/resize,m_fill,w_800,h_640'
+        }
+      } else if (e.from === 'menu') {
+        return {
+          path: '/pages/index'
+        }
+      }
+    }
+  }
+</script>
+<style lang="less">
+.home{
+  .learning-container{
+    .swiper-wraper{
+      background: #fff;
+      padding: 0 15px;
+      .swiper-container{
+        display: flex;
+        height: 168px;
+        .swiper-item{
+          height: 168px;
+          border-radius: 32rpx;
+          background: #FDA81E;
+          image{
+            border-radius: 32rpx;
+          }
+        }
+      }
+    }
+    .nav-container{
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin-bottom: 30rpx;
+      background: #ffffff;
+      padding: 30rpx 0;
+      .nav-item{
+        flex: 1;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        .img{
+          width: 90rpx;
+          width: 90rpx;
+          margin-bottom: 16rpx;
+        }
+        .text{
+          font-size: 28rpx;
+          font-weight: 500;
+        }
+      }
+    }
+    .nav-tab{
+      .van-tabs__line{
+        background-image: linear-gradient(to right, #FFC662, #FF7A26)
+      }
+    }
+  }
+}
+
+</style>

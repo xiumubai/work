@@ -1,0 +1,393 @@
+<template>
+  <view class="container">
+    <topNav title="对话练习" isShowBack="true"></topNav>
+    <view class="main-content">
+      <view class="bg"></view>
+      <view class="dialog-container">
+        <view class="title-chapter">
+          <view class="title">{{list.name}}</view>
+        </view>
+        <view class="dialog-content">
+          <view class="practice-container">
+            <view class="practice-item" wx:if="{{list.syncPractice.number > 0}}" bindtap="bindLink('practice', {{list.id}})">
+              <view class="left">
+                <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/nav/diandu.png"/>
+              </view>
+              <view class="content">
+                <view class="content-left">
+                  <view class="title">练习题</view>
+                  <view class="sub-title">共{{list.syncPractice.number}}道</view>
+                </view>
+                <view class="content-right">
+                  <view class="context-text" wx:if="{{list.syncPractice.isLearned}}">
+                    <view class="text" style="color: #59D676">已学习</view>
+                    <view class="img"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/icon_gou_active.png"/></view>
+                  </view>
+                  <view class="context-text" wx:else>
+                    <view class="text" style="color: #999999">未学习</view>
+                    <view class="img"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/icon_gou.png"/></view>
+                  </view>
+                </view>
+              </view>
+            </view>
+            <view class="practice-item practice-item2" wx:if="{{list.ebook.isExisted}}" bindtap="bindLink('ebook', {{list.id}})">
+              <view class="left">
+                <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/nav/meiri.png"/>
+              </view>
+              <view class="content">
+                <view class="content-left">
+                  <view class="title">电子课本</view>
+                  <view class="sub-title"></view>
+                </view>
+                <view class="content-right">
+                  <view class="context-text" wx:if="{{list.ebook.isLearned}}">
+                    <view class="text" style="color: #59D676">已学习</view>
+                    <view class="img"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/icon_gou_active.png"/></view>
+                  </view>
+                  <view class="context-text" wx:else>
+                    <view class="text" style="color: #999999">未学习</view>
+                    <view class="img"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/icon_gou.png"/></view>
+                  </view>
+                </view>
+              </view>
+            </view>
+            <view class="practice-item" wx:if="{{list.hanzi.number > 0}}" bindtap="bindLink('literacy_chinese', {{list.id}})">
+              <view class="left">
+                <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/nav/tingxie.png"/>
+              </view>
+              <view class="content">
+                <view class="content-left">
+                  <view class="title">快速识字</view>
+                  <view class="sub-title">共{{list.hanzi.number}}道</view>
+                </view>
+                <view class="content-right">
+                  <view class="context-text" wx:if="{{list.hanzi.isLearned}}">
+                    <view class="text" style="color: #59D676">已学习</view>
+                    <view class="img"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/icon_gou_active.png"/></view>
+                  </view>
+                  <view class="context-text" wx:else>
+                    <view class="text" style="color: #999999">未学习</view>
+                    <view class="img"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/icon_gou.png"/></view>
+                  </view>
+                </view>
+              </view>
+            </view>
+            <view class="practice-item" wx:if="{{list.unitWords.number > 0}}" bindtap="bindLink('dictation_english', {{list.chapterId}})">
+              <view class="left">
+                <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/nav/tingxie.png"/>
+              </view>
+              <view class="content">
+                <view class="content-left">
+                  <view class="title">本单元单词</view>
+                  <view class="sub-title">共{{list.unitWords.number}}道</view>
+                </view>
+                <view class="content-right">
+                  <view class="context-text" wx:if="{{list.unitWords.isLearned}}">
+                    <view class="text" style="color: #59D676">已学习</view>
+                    <view class="img"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/icon_gou_active.png"/></view>
+                  </view>
+                  <view class="context-text" wx:else>
+                    <view class="text" style="color: #999999">未学习</view>
+                    <view class="img"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/icon_gou.png"/></view>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+          <view class="ul"  wx:if="{{list.sentence.number > 0}}">
+            <view class="tips">课文跟读</view>
+            <repeat for="{{list.sentence.list}}" item="item" key="key" index="index">
+              <view class="li" bindtap="bindPlay({{item.soundUrl}}, {{index}})">
+                <view class="left">
+                  <view class="stem">{{item.content}}</view>
+                  <view class="trans" wx:if="{{item.description !== ''}}">{{item.description}}</view>
+                </view>
+                <view class="center" wx:if="{{item.recorderUrl}}">
+                  <image wx:if="{{item.isRecordPlay}}" catchtap="bindStopRecord({{index}})" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/dialog-practice/icon_bofang.png"/>
+                  <image wx:else catchtap="bindPlayRecord({{item.recorderUrl}}, {{index}})" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/dialog-practice/icon_zanting.png"/>
+                </view>
+                <view class="right">
+                  <view wx:if="{{current === index}}">
+                    <view class="bd1" catchtap="touchUp({{index}})" wx:if="{{recording}}"><view class="bd2"><view class="bd3"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/dialog-practice/icon_huatong_active.png"/></view></view></view>
+                    <view class="bd" catchtap="touchDown({{index}})" wx:else><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/dialog-practice/icon_huatong_active.png"/></view>
+                  </view>
+                  <image wx:else src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/dialog-practice/icon_huatong.png"/>
+                </view>
+              </view>
+            </repeat>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import api from '@/api/api'
+import request from '@/utils/request'
+import topNav from '@/components/topNav'
+const myaudio = wx.createInnerAudioContext()
+const recorder = wx.getRecorderManager()
+export default class DialogPractice extends wepy.page {
+  config = {
+    navigationBarTitleText: '对话练习',
+    usingComponents: {}
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    id: '',
+    filePath: '',
+    itemType: '',
+    list: {},
+    current: 0,
+    recordIndex: 0,
+    isPlay: false,
+    recording: false
+  }
+  methods = {
+    bindLink (url, id) {
+      wx.navigateTo({
+        url: url + '?nodeId=' + id + '&subject=' + this.subject + '&noChange=0'
+      })
+    },
+    bindPlay (src, index) {
+      myaudio.stop()
+      this.isPlay = false
+      this.playAudio(src)
+      this.current = index
+      this.$apply()
+    },
+    bindPlayRecord (src, index) {
+      this.list.sentence.list[index].isRecordPlay = true
+      this.recordIndex = index
+      this.$apply()
+      this.playAudio(src)
+    },
+    bindStopRecord (index) {
+      this.list.sentence.list[index].isRecordPlay = false
+      this.recordIndex = index
+      this.$apply()
+      myaudio.stop()
+    },
+    touchDown (index) {
+      if (this.current === index) {
+        this.recording = true
+        myaudio.stop()
+        recorder.start({
+          duration: 60000,          // 最大时长
+          sampleRate: 16000,        // 采样率
+          numberOfChannels: 1,      // 录音通道数
+          encodeBitRate: 24000,     // 编码码率，有效值见下表格
+          format: 'mp3'             // 音频格式
+        })
+      }
+    },
+    touchUp(index) {
+      if (this.current === index) {
+        this.recording = false
+        recorder.stop()
+      }
+    }
+  }
+  playAudio (src) {
+    if (!this.isPlay) {
+      myaudio.src = src
+      myaudio.play()
+      this.isPlay = true
+      this.$apply()
+    }
+  }
+  async onLoad (options) {
+    let that = this
+    this.id = options.id
+    this.subject = options.subject
+    this.$apply()
+    await this.fetchList()
+    myaudio.onEnded(() => {
+      this.isPlay = false
+      this.list.sentence.list[this.recordIndex].isRecordPlay = false
+      this.$apply()
+    })
+    recorder.onStop(e => {
+      // 保存录音文件的临时路径
+      that.filePath = e.tempFilePath
+      that.list.sentence.list[this.current].recorderUrl = e.tempFilePath
+      that.list.sentence.list[this.current].isRecordPlay = false
+      that.$apply()
+    })
+  }
+  onUnload () {
+    myaudio.stop()
+  }
+  onShow () {}
+  onReady () {}
+  async fetchList () {
+    let res = await request.authRequest({
+      url: api.learningChapters + '/' + this.id,
+      data: {
+        formId: ''
+      }
+    })
+    this.list = res.data.data
+    if (this.list.sentence.list.length > 0) {
+      this.playAudio(this.list.sentence.list[0].soundUrl)
+    }
+    this.$apply()
+  }
+}
+</script>
+<style lang="less">
+  .main-content{
+    position: relative;
+    width: 100%;
+  }
+  .bg{
+    position: absolute;
+    top: 0;
+    height: 392rpx;
+    width: 100%;
+    background:linear-gradient(180deg,rgba(255,251,243,1) 0%,rgba(255,250,241,1) 56%,rgba(247,247,247,1) 100%);
+  }
+  .dialog-container{
+    position: absolute;
+    width: 100%;
+    top: 0;
+    .title-chapter{
+      padding: 30rpx 30rpx;
+      .title{
+        font-size: 18px;
+        font-weight: 500;
+      }
+    }
+    .dialog-content{
+      padding: 0 30rpx;
+      .ul{
+        padding-bottom: 60rpx;
+        .sub-title{
+          font-size: 12px;
+          color: #666;
+        }
+        .li{
+          background: #fff;
+          border-radius: 20rpx;
+          display: flex;
+          align-items: center;
+          padding: 30rpx;
+          margin-top: 30rpx;
+          .left{
+            flex: 1;
+            .trans{
+              font-size: 12px;
+              color: #666;
+              margin-top: 30rpx;
+            }
+          }
+          .center{
+            flex: 74rpx 0 0;
+            height: 74rpx;
+          }
+          .right{
+            flex: 102rpx 0 0;
+            height: 102rpx;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            image{
+              width: 74rpx;
+              height: 74rpx;
+            }
+            .bd1{
+              padding: 8rpx;
+              background: #FFF0D6;
+              border-radius: 50%;
+              animation: loading-content 2s ease-in-out infinite;
+              .bd2{
+                padding: 8rpx;
+                background: #FFE0AA;
+                border-radius: 50%;
+                animation: loading-content 2s ease-in-out infinite;
+                .bd3{
+                  width: 74rpx;
+                  height: 74rpx;
+                  background: #FFC662;
+                  border-radius: 50%;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  opacity: 1;
+                  z-index: 10;
+                }
+              }
+            }
+            @keyframes loading-content {
+              0% {
+                opacity: 0.6;
+              }
+              100% {
+                opacity: 1;
+              }
+            }
+          }
+        }
+      }
+    }
+    .tips{
+      font-size: 12px;
+      color: #999;
+      text-align: center;
+      padding: 30rpx 0;
+    }
+    .practice-container{
+      .practice-item{
+        display: flex;
+        height: 168rpx;
+        margin-bottom: 30rpx;
+        box-sizing: border-box;
+        padding: 30rpx;
+        background: #fff;
+        .left{
+          flex: 46rpx 0 0;
+          height: 46rpx;
+          margin-right: 20rpx;
+          margin-left: 30rpx;
+        }
+        .content{
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          .content-left{
+            .title{
+              font-size: 18px;
+              margin-bottom: 24rpx;
+              font-weight: 500;
+            }
+            .sub-title{
+              height: 17px;
+              font-size: 12px;
+              color: #666;
+            }
+          }
+          .content-right{
+            .context-text{
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              .text{
+                font-size: 12px;
+                margin-right: 10rpx;
+              }
+              .img{
+                width: 24rpx;
+                height: 24rpx;
+              }
+            }
+          }
+        }
+      }
+    }
+
+  }
+</style>

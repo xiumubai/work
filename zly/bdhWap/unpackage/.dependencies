@@ -1,0 +1,30 @@
+{
+  "mine/unusual_order.html": {
+    "href": "mine/unusual_order.html",
+    "resources": [],
+    "priority": 4
+  },
+  "platform/meeting_detail.html": {
+    "href": "platform/meeting_detail.html",
+    "resources": [],
+    "refer": [],
+    "priority": 5
+  },
+  "platform/detail-main.html": {
+    "href": "platform/detail-main.html",
+    "resources": [],
+    "refer": [],
+    "priority": 3
+  },
+  "barItem/my_order.html": {
+    "href": "barItem/my_order.html",
+    "resources": [],
+    "priority": 4
+  },
+  "index.html": {
+    "href": "index.html",
+    "resources": [],
+    "refer": [],
+    "priority": 0
+  }
+}

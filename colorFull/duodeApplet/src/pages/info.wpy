@@ -1,0 +1,288 @@
+
+<template>
+  <view class="container">
+    <topNav title="我的"></topNav>
+    <view class="main-content">
+      <view class="info-container flex">
+        <view class="info-left">
+          <view class="avatar-container">
+            <image class="avatar" src="{{userinfo.avatar}}"/>
+          </view>
+        </view>
+        <view class="info-right">
+          <view class="flex">
+            <view wx:if="{{isLoggedIn}}" class="user-name fz36">
+              {{userinfo.nickname}}
+            </view>
+            <view wx:else class="user-name fz36">
+              未登陆
+            </view>
+            <!-- <view class="link-right flex">
+              <view class="text c999 fz24 mr-12">个人主页</view>
+              <view class="icon-right"></view>
+            </view> -->
+          </view>
+          <button class="edit-button btn-nostyle c999 fz24" hover-class="hover" bindtap="bindlink('info_edit')">
+            编辑资料
+          </button>
+          <!-- <button></button> -->
+          <view class="border-1px" wx:if="{{isProduction}}"></view>
+          <view class="mes-item flex" wx:if="{{isProduction}}">
+            <view class="item">
+              <view class="fz36">51</view>
+              <view class="c999 fz28">我的粉丝</view>
+            </view>
+            <view class="item">
+              <view class="fz36">56</view>
+              <view class="c999 fz28">我的关注</view>
+            </view>
+            <view class="item">
+              <view class="fz36">19</view>
+              <view class="c999 fz28">我的消息</view>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="record-container">
+        <view class="flex link-item record-item" hover-class="hover">
+          <view class="flex">
+            <view class="icon flex icon-record">
+              <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_record.png"/>
+            </view>
+            <view class="user-name fz32">
+              试学记录
+            </view>
+          </view>
+          <!-- <view class="link-right flex">
+            <view class="text c999 fz24 mr-12">全部</view>
+            <view class="icon-right"></view>
+          </view> -->
+        </view>
+        <view class="record-swiper">
+          <scroll-view scroll-x class="scroll-container">
+            <repeat for="{{list}}" key="index">
+              <view class="scroll-view-item">
+                <navigator url="course_detail?id={{item.id}}">
+                  <view class="video-container bg-f3">
+                    <image src="{{item.faceUrl}}"/>
+                    <view class="tag" wx:if="{{item.type === 1}}">视频</view>
+                    <view class="tag" wx:if="{{item.type === 2}}">音频</view>
+                    <view class="tag" wx:if="{{item.type === 3}}">文章</view>
+                  </view>
+                </navigator>
+                <view class="scroll-subtitle">
+                  {{item.name}}
+                </view>
+              </view>
+            </repeat>
+          </scroll-view>
+        </view>
+        <view class="no-data" wx:if="{{list.length === 0}}">暂无数据</view>
+        <view class="flex link-item" hover-class="hover" wx:if="{{isHide}}" bindtap="bindlink('learn_canlendar')">
+          <view class="flex">
+            <view class="icon flex">
+              <image class="width-32" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_jifen.png"/>
+            </view>
+            <view class="user-name fz32">
+              学习日历
+            </view>
+          </view>
+          <view class="link-right flex">
+            <view class="icon-right"></view>
+          </view>
+        </view>
+        <view class="flex link-item" hover-class="hover" wx:if="{{!isHide}}">
+          <view class="flex">
+            <view class="icon flex">
+              <image class="width-32" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_jigou.png"/>
+            </view>
+            <view class="user-name fz32">
+              机构入驻
+            </view>
+          </view>
+          <view class="link-right flex">
+            <view class="icon-right"></view>
+          </view>
+        </view>
+        <view class="flex link-item" hover-class="hover" bindtap="bindlink('about_us')">
+          <view class="flex">
+            <view class="icon flex">
+              <image class="width-32" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_guanyu.png"/>
+            </view>
+            <view class="user-name fz32">
+              关于我们
+            </view>
+          </view>
+          <view class="link-right flex">
+            <view class="icon-right"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import request from '@/utils/request'
+  import api from '@/api/api'
+  import topNav from '@/components/topNav'
+  import {
+    USER_INFO
+  } from '@/utils/constant'
+  export default class Info extends wepy.page {
+    config = {
+      navigationBarTitleText: '我的'
+    }
+    components = {
+      topNav: topNav
+    }
+    data = {
+      isLoggedIn: false,
+      userinfo: null,
+      isProduction: false,
+      list: [],
+      isHide: true
+    }
+    methods = {
+      bindlink (url) {
+        wx.navigateTo({
+          url: url
+        })
+      }
+    }
+    async onLoad () {
+      let getCurrentUserReponse = await request.getCurrentUser()
+      if (getCurrentUserReponse.statusCode === 200) {
+        // 用户信息
+        let userinfo = wepy.getStorageSync(USER_INFO)
+        if (userinfo) {
+          this.userinfo = userinfo
+          this.isLoggedIn = true
+          this.$apply()
+        }
+      }
+      // 学习记录接口
+      let res = await request.authRequest(api.courseLearnList, false)
+      this.list = res.data.data.list
+      this.$apply()
+    }
+  }
+</script>
+<style lang="less">
+.info-container{
+  padding: 40rpx;
+  background: #ffffff;
+  margin-bottom: 10rpx;
+}
+.info-left{
+  flex: 180rpx 0 0;
+  margin-right: 40rpx;
+}
+.no-data{
+  text-align: center;
+  font-size: 28rpx;
+  color: #666666;
+}
+.info-right{
+  flex: 1;
+}
+.info-left .avatar-container{
+  width: 180rpx;
+  height: 180rpx;
+  background: #f5f5f5;
+  border-radius: 50%;
+}
+.info-left .avatar{
+  border-radius: 50%;
+}
+.info-right .edit-button{
+  padding:0;
+  margin:0;
+  width: 144rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  text-align: center;
+  border: 1rpx solid #999999;
+  border-radius: 24rpx;
+  margin-top: 22rpx;
+}
+.mes-item{
+  margin-top: 40rpx;
+  margin-bottom: 40rpx;
+}
+.mes-item .item{
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.mes-item .item .fz36{
+  margin-bottom: 16rpx;
+}
+.record-container{
+  background: #ffffff;
+}
+.link-item{
+  padding: 20rpx 40rpx;
+  border-bottom: 1rpx solid #F3F3F3;
+}
+.link-item .icon{
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
+  background-color: #61BAFF;
+  margin-right: 20rpx;
+  justify-content: center;
+}
+.link-item .icon-record{
+  background-color: #ffffff;
+}
+.record-item{
+  border-bottom: none;
+}
+.scroll-container{
+  display: flex;
+  white-space: nowrap;
+}
+.scroll-view-item{
+  display: inline-block;
+  width: 220rpx;
+  margin-right: 30rpx;
+}
+.scroll-view-item:first-child{
+  margin-left: 40rpx;
+}
+.scroll-view-item .video-container{
+  width: 220rpx;
+  height: 156rpx;
+  position: relative;
+  margin-bottom: 10rpx;
+}
+.scroll-view-item image{
+  width: 100%;
+  height: 100%;
+}
+.tag{
+  background: #999999;
+  border-radius: 0 0 8rpx 0;
+  color: #ffffff;
+  font-size: 20rpx;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 4rpx 14rpx;
+}
+.scroll-subtitle{
+  font-size: 28rpx;
+  width: 220rpx;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  color: transparent;
+}
+</style>

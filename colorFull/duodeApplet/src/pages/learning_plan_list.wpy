@@ -1,0 +1,84 @@
+<template>
+  <view class="container">
+    <topNav title="学习计划" isShowBack="true"></topNav>
+    <scroll-view scroll-y style="height: {{height}}px;" bindscrolltolower="scrollToBottom">
+      <view class="main-content">
+        <view class="course">
+          <repeat for="{{courseList}}" key="index">
+            <CousrItem :item.sync="item"></CousrItem>
+          </repeat>
+          <view class="load-more" wx:if="{{isFinishing}}">
+            <view class="border-1px"></view>
+            <view class="text">没有更多了</view>
+            <view class="border-1px"></view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import request from '@/utils/request'
+import api from '@/api/api'
+import topNav from '@/components/topNav'
+import CousrItem from '@/components/courseItem'
+export default class LearningPlanList extends wepy.page {
+  config = {
+    navigationBarTitleText: '多得课堂'
+  }
+  components = {
+    topNav: topNav,
+    CousrItem: CousrItem
+  }
+  data = {
+    height: 0,
+    page: 1,
+    perPage: 10,
+    pages: 0,
+    courseList: [],
+    loading: false,
+    isFinishing: false
+  }
+  onLoad () {
+    this.fetchArticleList(1)
+      // 获取scroll-view的高度
+    this.height = this.$parent.globalData.height + 45
+    this.$apply()
+  }
+  scrollToBottom() {
+    // 下拉触底，先判断是否有请求正在进行中
+    // 以及检查当前请求页数是不是小于数据总页数，如符合条件，则发送请求
+    if (!this.loading && this.data.page < this.data.pages) {
+      this.fetchArticleList(this.data.page + 1)
+    } else {
+      this.isFinishing = true
+      this.$apply()
+    }
+  }
+  async fetchArticleList (page) {
+    this.loading = true
+    let listResponse = await request.authRequest({
+      url: api.coursesList,
+      data: {
+        page: page,
+        perPage: this.perPage
+      }
+    })
+    if (listResponse.statusCode === 200) {
+      this.loading = false
+      this.page = page
+      this.pages = listResponse.data.data.pagination.totalPages
+      this.courseList = this.courseList.concat(listResponse.data.data.list)
+      this.$apply()
+    }
+  }
+}
+</script>
+<style lang="less">
+.course{
+  padding: 0 30rpx;
+  padding-top: 20rpx;
+  background: #ffffff;
+}
+</style>

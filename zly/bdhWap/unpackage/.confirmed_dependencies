@@ -1,0 +1,522 @@
+{
+  "index.html": {
+    "resources": [
+      "js/common.js",
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "barItem/goods.html",
+      "img/bar_icon_myorder.png",
+      "img/bar_icon_order_analysis.png",
+      "img/bar_icon_mine.png",
+      "img/bar_icon_more.png",
+      "img/bar_icon_goods_selected.png",
+      "img/bar_icon_goods.png",
+      "img/bar_icon_myorder_selected.png",
+      "img/bar_icon_order_analysis_selected.png",
+      "img/bar_icon_more_selected.png",
+      "img/bar_icon_mine_selected.png",
+      "js/vue.min.js"
+    ],
+    "refer": [
+      "platform/list.html",
+      "barItem/more.html",
+      "barItem/my_order.html",
+      "barItem/order_analysis.html",
+      "barItem/mine.html",
+      "barItem/goods.html",
+      "platform/meeting_detail-main.html",
+      "platform/first_run.html",
+      "bdh/platform/main.html",
+      "ns/platform/main.html",
+      "bdh/index.html",
+      "app_list.html"
+    ]
+  },
+  "platform/list.html": {
+    "resources": [
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css"
+    ],
+    "refer": [
+      "platform/detail-main.html"
+    ]
+  },
+  "platform/meeting_detail-main.html": {
+    "resources": [
+      "platform/meeting_detail.html",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "fonts/mui.ttf"
+    ],
+    "refer": [
+      "platform/meeting_detail.html",
+      "platform/detail-main.html"
+    ]
+  },
+  "platform/detail.html": {
+    "refer": [
+      "platform/meeting_detail-main.html",
+      "platform/list.html"
+    ],
+    "resources": [
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "js/common.js"
+    ]
+  },
+  "platform/meeting_detail.html": {
+    "resources": [
+      "img/a.jpg",
+      "js/common.js",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "img/meeting_default.jpg"
+    ],
+    "refer": [
+      "platform/detail-main.html",
+      "index.html"
+    ]
+  },
+  "platform/detail-main.html": {
+    "resources": [
+      "platform/detail.html",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "img/dh_bkd.png",
+      "img/platform_logo.png",
+      "fonts/mui.ttf"
+    ],
+    "refer": [
+      "platform/detail.html",
+      "platform/meeting_detail-main.html",
+      "platform/list.html",
+      "platform/main.html"
+    ]
+  },
+  "barItem/my_order.html": {
+    "resources": [
+      "css/base.css",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "js/common.js",
+      "js/ejs.js",
+      "js/ejs.min.js",
+      "js/vue.min.js",
+      "fonts/mui.ttf",
+      "index-menu.html"
+    ],
+    "refer": [
+      "index-menu.html"
+    ]
+  },
+  "barItem/mine.html": {
+    "refer": [
+      "mine/unusual_order.html",
+      "mine/target.html",
+      "mine/audit_order.html",
+      "mine/favorite.html",
+      "mine/rank.html"
+    ],
+    "resources": [
+      "fonts/mui.ttf",
+      "js/mui.min.js",
+      "css/mui.min.css"
+    ]
+  },
+  "mine/unusual_order.html": {
+    "resources": [
+      "js/common.js",
+      "js/mui.min.js",
+      "css/mui.min.css"
+    ],
+    "refer": []
+  },
+  "mine/target.html": {
+    "resources": [
+      "js/mui.min.js",
+      "css/mui.min.css"
+    ],
+    "refer": []
+  },
+  "barItem/more.html": {
+    "href": "barItem/more.html",
+    "resources": [
+      "css/mui.min.css",
+      "js/mui.min.js",
+      "img/exhibit_background.png",
+      "img/match_background.png",
+      "img/mask_background.png"
+    ],
+    "refer": [
+      "barItem/match.html"
+    ],
+    "priority": 0
+  },
+  "barItem/order_analysis.html": {
+    "href": "barItem/order_analysis.html",
+    "resources": [
+      "js/mui.min.js",
+      "css/mui.min.css"
+    ],
+    "refer": [],
+    "priority": 0
+  },
+  "mine/audit_order.html": {
+    "href": "mine/audit_order.html",
+    "resources": [
+      "css/mui.min.css",
+      "js/mui.min.js",
+      "img/huizong.png",
+      "img/no_data.png",
+      "css/base.css",
+      "js/common.js",
+      "js/vue.min.js"
+    ],
+    "refer": [],
+    "priority": 0
+  },
+  "mine/favorite.html": {
+    "href": "mine/favorite.html",
+    "resources": [
+      "css/mui.min.css",
+      "js/mui.min.js"
+    ],
+    "refer": [],
+    "priority": 0
+  },
+  "mine/rank.html": {
+    "href": "mine/rank.html",
+    "resources": [
+      "css/mui.min.css",
+      "js/mui.min.js",
+      "css/base.css",
+      "js/common.js",
+      "fonts/mui.ttf",
+      "js/vue.min.js"
+    ],
+    "refer": [],
+    "priority": 0
+  },
+  "barItem/goods.html": {
+    "href": "barItem/goods.html",
+    "resources": [
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "css/base.css",
+      "js/vue.min.js",
+      "barItem/goods.html",
+      "js/common.js"
+    ],
+    "refer": [
+      "barItem/good-left-plus-menu.html",
+      "barItem/change_good_detail.html"
+    ],
+    "priority": 0
+  },
+  "barItem/change_good_detail.html": {
+    "resources": [
+      "css/base.css",
+      "js/common.js",
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "js/vue.min.js",
+      "barItem/change_good_detail.html"
+    ],
+    "refer": []
+  },
+  "platform/main.html": {
+    "resources": [
+      "js/mui.min.js",
+      "fonts/mui.ttf",
+      "css/mui.min.css",
+      "platform/first_run.html",
+      "css/platform.css"
+    ],
+    "refer": [
+      "platform/first_run.html"
+    ]
+  },
+  "platform/first_run.html": {
+    "resources": [
+      "img/guide_1.png",
+      "img/guide_0.png",
+      "img/guide_3.png",
+      "img/guide_4.png",
+      "img/guide_arrow.png",
+      "img/guide_2.png",
+      "css/platform.css"
+    ],
+    "refer": [
+      "platform/search.html"
+    ]
+  },
+  "platform/search.html": {
+    "resources": [
+      "platform/list_seach.html"
+    ],
+    "refer": [
+      "platform/list_seach.html"
+    ]
+  },
+  "platform/list_seach.html": {
+    "refer": [
+      "platform/detail-main.html"
+    ],
+    "resources": []
+  },
+  "barItem/good-left-plus-menu.html": {
+    "resources": [
+      "js/mui.min.js",
+      "css/mui.min.css"
+    ],
+    "refer": []
+  },
+  "index-menu.html": {
+    "resources": [
+      "css/base.css",
+      "js/common.js",
+      "js/mui.min.js",
+      "css/mui.min.css",
+      "js/vue.min.js",
+      "fonts/mui.ttf"
+    ],
+    "refer": []
+  },
+  "barItem/match.html": {
+    "resources": [
+      "fonts/mui.ttf",
+      "img/no_data.png"
+    ],
+    "refer": []
+  },
+  "bdh/platform/main.html": {
+    "resources": [
+      "bdh/platform/list.html"
+    ],
+    "refer": [
+      "bdh/platform/list.html",
+      "bdh/platform/search.html",
+      "app_list.html"
+    ]
+  },
+  "bdh/barItem/order_analysis.html": {
+    "refer": [
+      "bdh/order-analysis-menu.html"
+    ],
+    "resources": []
+  },
+  "bdh/platform/meeting_detail-main.html": {
+    "resources": [
+      "bdh/platform/meeting_detail.html"
+    ],
+    "refer": [
+      "bdh/platform/meeting_detail.html",
+      "bdh/platform/detail-main.html"
+    ]
+  },
+  "bdh/platform/detail-main.html": {
+    "resources": [
+      "bdh/platform/detail.html"
+    ],
+    "refer": [
+      "bdh/platform/detail.html",
+      "bdh/platform/main.html"
+    ]
+  },
+  "bdh/barItem/goods.html": {
+    "refer": [
+      "bdh/index-menu.html",
+      "bdh/barItem/change_good_detail.html",
+      "bdh/goods-menu.html"
+    ],
+    "resources": []
+  },
+  "bdh/barItem/my_order.html": {
+    "refer": [
+      "bdh/barItem/do_order.html",
+      "bdh/index-menu.html"
+    ],
+    "resources": []
+  },
+  "bdh/index.html": {
+    "resources": [
+      "bdh/barItem/goods.html",
+      "bdh/barItem/order_analysis.html"
+    ],
+    "refer": [
+      "bdh/platform/meeting_detail-main.html",
+      "bdh/barItem/order_analysis.html",
+      "bdh/barItem/goods.html",
+      "bdh/barItem/my_order.html",
+      "bdh/barItem/mine.html",
+      "bdh/barItem/more.html"
+    ]
+  },
+  "ns/platform/meeting_detail-main.html": {
+    "resources": [
+      "ns/platform/meeting_detail.html"
+    ],
+    "refer": [
+      "ns/platform/meeting_detail.html"
+    ]
+  },
+  "ns/platform/main.html": {
+    "resources": [
+      "ns/platform/list.html"
+    ],
+    "refer": [
+      "ns/platform/search.html",
+      "ns/platform/list.html",
+      "app_list.html"
+    ]
+  },
+  "ns/platform/search.html": {
+    "resources": [
+      "ns/platform/list_seach.html"
+    ],
+    "refer": [
+      "ns/platform/list_seach.html"
+    ]
+  },
+  "ns/platform/detail-main.html": {
+    "resources": [
+      "ns/platform/detail.html"
+    ],
+    "refer": [
+      "ns/platform/detail.html"
+    ]
+  },
+  "ns/platform/list.html": {
+    "refer": [
+      "ns/platform/detail-main.html",
+      "ns/index.html"
+    ],
+    "resources": []
+  },
+  "bdh/platform/search.html": {
+    "resources": [
+      "bdh/platform/list_seach.html"
+    ],
+    "refer": [
+      "bdh/platform/list_seach.html"
+    ]
+  },
+  "ns/platform/detail.html": {
+    "refer": [
+      "ns/platform/meeting_detail-main.html"
+    ],
+    "resources": []
+  },
+  "bdh/platform/list.html": {
+    "refer": [
+      "bdh/platform/detail-main.html",
+      "bdh/index.html"
+    ],
+    "resources": []
+  },
+  "bdh/platform/detail.html": {
+    "refer": [
+      "bdh/platform/meeting_detail-main.html"
+    ],
+    "resources": []
+  },
+  "app_list.html": {
+    "refer": [
+      "bdh/platform/main.html",
+      "bdh/platform/first_run.html",
+      "ns/platform/first_run.html",
+      "about_us.html",
+      "ns/platform/main.html"
+    ],
+    "resources": [
+      "img/bar_icon_mine_selected.png",
+      "img/bar_icon_app_list.png"
+    ]
+  },
+  "bdh/barItem/mine.html": {
+    "refer": [
+      "bdh/mine/unusual_order.html",
+      "bdh/mine/product_total.html",
+      "bdh/mine/rank.html",
+      "bdh/mine/star.html",
+      "bdh/mine/target.html",
+      "bdh/mine/favorite.html",
+      "bdh/mine/audit_order.html",
+      "bdh/mine/contract.html"
+    ],
+    "resources": []
+  },
+  "bdh/mine/product_total.html": {
+    "refer": [
+      "bdh/product-total-menu.html"
+    ],
+    "resources": []
+  },
+  "bdh/mine/rank.html": {
+    "refer": [
+      "bdh/rank-menu.html"
+    ],
+    "resources": []
+  },
+  "bdh/mine/star.html": {
+    "resources": [
+      "bdh/barItem/order_analysis.html",
+      "bdh/mine/star_no_data.html"
+    ],
+    "refer": [
+      "bdh/barItem/order_analysis.html"
+    ]
+  },
+  "bdh/platform/list_seach.html": {
+    "refer": [
+      "bdh/platform/detail-main.html"
+    ],
+    "resources": []
+  },
+  "bdh/platform/first_run.html": {
+    "refer": [
+      "bdh/platform/main.html",
+      "bdh/platform/search.html"
+    ],
+    "resources": []
+  },
+  "bdh/mine/favorite.html": {
+    "refer": [
+      "bdh/barItem/change_good_detail.html"
+    ],
+    "resources": []
+  },
+  "bdh/platform/meeting_detail.html": {
+    "refer": [
+      "bdh/index.html"
+    ],
+    "resources": []
+  },
+  "ns/platform/first_run.html": {
+    "refer": [
+      "ns/platform/main.html",
+      "ns/platform/search.html"
+    ],
+    "resources": []
+  },
+  "ns/platform/list_seach.html": {
+    "refer": [
+      "ns/platform/detail-main.html"
+    ],
+    "resources": []
+  },
+  "bdh/mine/contract.html": {
+    "refer": [
+      "bdh/mine/contract_detail.html"
+    ],
+    "resources": []
+  },
+  "bdh/mine/audit_order.html": {
+    "refer": [
+      "bdh/mine/audit_order_detail.html"
+    ]
+  }
+}

@@ -1,0 +1,150 @@
+<template>
+  <view class="container">
+    <topNav title="课后听写" isShowBack="false"></topNav>
+    <view class="main-content">
+      <view class="top">
+        <view class="img">
+          <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/result.png"/>
+        </view>
+        <view class="text">听写完成啦</view>
+        <view class="sub-items">一共{{reslist.list.length}}项，请核对一下吧</view>
+      </view>
+      <view class="titles" wx:if="{{subject === '3'}}">{{reslist.unit.name}}</view>
+      <view class="titles" wx:else>{{reslist.bookNode.name}}</view>
+      <view class="bottom">
+        <block wx:if="{{subject === '3'}}">
+          <repeat for="{{reslist.list}}" item="item" key="key" index="index">
+            <view class="res-item">
+              <view class="fanyi">
+                {{item.answer}}
+              </view>
+              <view class="mean">
+                {{item.stem}}
+              </view>
+            </view>
+          </repeat>
+        </block>
+        <block wx:else>
+          <repeat for="{{reslist.list}}" item="item" key="key" index="index">
+            <view class="res-item" style="margin-right:30px;">
+              <view class="fanyi">
+                {{item.stem}}
+              </view>
+              <view class="mean">
+                {{item.answer}}
+              </view>
+            </view>
+          </repeat>
+        </block>
+      </view>
+      <view class="confirm-box">
+        <view class="confirm" bindtap="bindlink">
+          听写完成
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+export default class DictationResult extends wepy.page {
+  config = {
+    navigationBarTitleText: '课后听写',
+    usingComponents: {}
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    reslist: {},
+    subject: 3
+  }
+  methods = {
+    bindlink () {
+      wx.redirectTo({
+        url: 'learn_canlendar?backHome=true'
+      })
+    }
+  }
+  onLoad (options) {
+    this.subject = options.subject
+  }
+  onShow () {
+    this.reslist = wepy.getStorageSync('lwResult')
+    this.$apply()
+  }
+  onReady () {}
+}
+</script>
+<style lang="less">
+.main-content{
+  .top{
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    .img{
+      width: 118px;
+      height: 134px;
+      margin-top: 30px;
+    }
+    .text{
+      font-size: 18px;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+    .sub-items{
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+  }
+  .titles{
+    text-align: center;
+    margin: 20px 0;
+  }
+  .bottom{
+    margin: 0 15px;
+    padding: 30px 15px;
+    background: #fff;
+    display: flex;
+    border-radius: 5px;
+    flex-wrap: wrap;
+    .res-item{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      margin-bottom: 10px;
+      .fanyi{
+        white-space:nowrap;
+      }
+      .mean{
+        font-size: 14px;
+        margin-top: 6px;
+        white-space:nowrap;
+      }
+    }
+  }
+  .confirm-box{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 30px 0;
+    .confirm{
+      width: 100px;
+      height: 30px;
+      color: #fff;
+      font-size: 14px;
+      line-height: 30px;
+      text-align: center;
+      background-image: url('http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/wancheng.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+  }
+}
+</style>

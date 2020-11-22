@@ -1,0 +1,457 @@
+<template>
+  <view class="container">
+    <topNav title="练习题" isShowBack="true"></topNav>
+    <view class="main-content">
+      <view class="progress-container">
+        <view class="text">当前进度</view>
+        <view class="progress-bar"><progress percent="{{percent}}" border-radius="10" stroke-width="15" color="#FFC662" backgroundColor="#CCC" /></view>
+        <view class="progress-num">{{length + 1}}/{{practiceList.length}}</view>
+      </view>
+      <veiw class="practice">
+        <view class="sub-title">
+          <view class="tingtong" wx:if="{{practice.stemAudio !== ''}}" bindtap="bindPlay({{practice.stemAudio}})">
+            <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/icon_shengyin.png"/>
+          </view>
+          <rich-text nodes="{{practice.stem}}"></rich-text>
+        </view>
+        <view class="select-container">
+          <!-- 单项选择题 -->
+          <veiw class="select" wx:if="{{practice.type === 2}}">
+            <view class="select-content">
+              <repeat for="{{practice.options}}" item="entry" key="key" index="index">
+                <view class="select-item {{entry.isSelected === 1 ? 'active' : ''}}" bindtap="bindSelect({{entry.isAnswer}}, {{practice.id}}, {{index}})">
+                  <view class="item-order">{{entry.name}}.</view>
+                  <view><rich-text nodes="{{entry.value}}"></rich-text></view>
+                </view>
+              </repeat>
+            </view>
+          </veiw>
+          <!-- 连词成句题 -->
+          <view class="contact-word" wx:if="{{practice.type === 6}}">
+            <view class="answer">
+              <repeat for="{{practice.options}}" item="word" key="key" index="index">
+                <view bindtap="bindDeleteWord({{practice.id}}, {{word.content}}, {{word.index2}})">{{word.content2}}</view>
+              </repeat>
+            </view>
+            <view class="word-content">
+              <repeat for="{{practice.options}}" item="word" key="key" index="index">
+                <view bindtap="bindContactWord({{practice.id}}, {{word.content}}, {{word.index}}, {{practice.options.length}})">{{word.content}}</view>
+              </repeat>
+            </view>
+          </view>
+          <!-- 选择结果 -->
+          <view class="result-container" wx:if="{{practice.isShowAnswer}}">
+            <view>
+              <view wx:if="{{practice.isRight}}" class="res right">回答正确</view>
+              <view wx:else class="res error">回答错误</view>
+            </view>
+            <view wx:if="{{!practice.isRight && practice.type === 2}}">【正确答案】：{{practice.correctAnswer[0].name}}</view>
+            <view wx:if="{{!practice.isRight && practice.type === 6}}">【正确答案】：{{practice.answer}}</view>
+            <view class="analysis" wx:if="{{practice.analysis !== ''}}">
+              【解析】：<rich-text nodes="{{practice.analysis}}"></rich-text>
+            </view>
+          </view>
+        </view>
+      </veiw>
+      <view class="footer">
+        <view class="prev btn-hhh {{length !== 0 ? 'active' : ''}}" bindtap="bindPrev">上一题</view>
+        <view class="next btn-hhh {{length !==  practiceList.length - 1 ? 'active' : ''}}" bindtap="bindNext">下一题</view>
+      </view>
+    </view>
+    <van-toast id="van-toast"/>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import api from '@/api/api'
+import request from '@/utils/request'
+import topNav from '@/components/topNav'
+import Toast from '../vant-weapp/toast/toast'
+const myaudio = wx.createInnerAudioContext()
+export default class Practice extends wepy.page {
+  config = {
+    navigationBarTitleText: '练习题',
+    usingComponents: {
+      'van-toast': '../vant-weapp/toast/index'
+    }
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    rate: 0,
+    rateVal: 0,
+    percent: 0,
+    length: 0,
+    nodeId: '',
+    subject: '',
+    practice: {},
+    practiceList: [],
+    isPlay: false,
+    params: {
+      isFinished: 1,
+      question: []
+    }
+  }
+  methods = {
+    bindPrev () {
+      if (this.length > 0) {
+        myaudio.stop()
+        this.length -= 1
+        this.percent -= this.rate
+        this.practice = this.practiceList[this.length]
+        this.isPlay = false
+        this.$apply()
+        if (this.practice.stemAudio !== '') {
+          this.playAudio(this.practice.stemAudio)
+        }
+      } else {
+        Toast('已经是第一个了~')
+      }
+    },
+    bindNext () {
+      if (this.length + 1 < this.practiceList.length) {
+        myaudio.stop()
+        this.length += 1
+        this.percent += this.rate
+        this.practice = this.practiceList[this.length]
+        this.isPlay = false
+        this.$apply()
+        if (this.practice.stemAudio !== '') {
+          this.playAudio(this.practice.stemAudio)
+        }
+      } else {
+        Toast('已经是最后一个了~')
+      }
+    },
+    // 单项选择
+    bindSelect (answer, id, index) {
+      let list = this.practiceList
+      list.map(v => {
+        if (!v.isDone) {
+          let obj = {}
+          if (id === v.id) {
+            v.isDone = true
+            obj.id = v.id
+            if (v.options instanceof Array) {
+              v.options.map((k, i) => {
+                if (i === index) {
+                  v.isShowAnswer = true
+                  k.isSelected = 1
+                  if (answer) {
+                    this.rateVal += 1
+                    this.$apply()
+                    v.isRight = true
+                    obj.isCorrect = true
+                  } else {
+                    obj.isCorrect = false
+                  }
+                }
+              })
+            }
+            this.params.question.push(obj)
+            this.$apply()
+          }
+        }
+      })
+      this.practiceList = list
+      this.practice = this.practiceList[this.length]
+      this.params.starNumber = this.rateVal
+      this.$apply()
+      if (this.params.question.length === this.practiceList.length) {
+        this.submitAnswer()
+      }
+    },
+    bindDeleteWord (id, content, index) {
+      // 点击当前的项，就重置当前项
+      this.practiceList.map(v => {
+        if (!v.isDone) {
+          if (v.id === id) {
+            if (v.options instanceof Array) {
+              v.options.map(k => {
+                if (k.index2 === index) {
+                  k.content2 = ''
+                  k.index2 = 0
+                  if (v.counter > 0) {
+                    v.counter -= 1
+                  }
+                }
+              })
+            }
+          }
+        }
+      })
+      this.practice = this.practiceList[this.length]
+      this.$apply()
+    },
+    // 连词成句
+    bindContactWord (id, content, index2, length) {
+      let flag = true
+      let flag2 = true
+      this.practiceList.map(v => {
+        if (!v.isDone) {
+          let obj = {}
+          if (v.id === id) {
+            if (v.options instanceof Array) {
+              v.options.map(k => {
+                // 不能重复选择同一个项
+                if (k.content2 === content) {
+                  flag = false
+                } else {
+                  if (flag) {
+                    if (k.content2 === '') {
+                      v.counter += 1
+                      k.content2 = content
+                      k.index2 = index2
+                      flag = false
+                    }
+                  }
+                }
+              })
+              if (v.counter === length) {
+                for (let i = 0; i < length; i++) {
+                  if (v.options[i].index2 !== i) {
+                    flag2 = false
+                  }
+                }
+              }
+            }
+            if (v.counter === length) {
+              // 回答完毕
+              if (flag2) {
+                // 回答正确
+                this.rateVal += 1
+                this.$apply()
+                v.isRight = true
+                obj.id = v.id
+                obj.isCorrect = true
+              } else {
+                obj.id = v.id
+                obj.isCorrect = false
+              }
+              v.isDone = true
+              v.isShowAnswer = true
+              this.params.question.push(obj)
+              this.$apply()
+            }
+          }
+        }
+      })
+      this.practice = this.practiceList[this.length]
+      this.params.starNumber = this.rateVal
+      this.$apply()
+      if (this.params.question.length === this.practiceList.length) {
+        this.submitAnswer()
+      }
+    },
+    bindPlay(src) {
+      this.playAudio(src)
+    }
+  }
+  playAudio (src) {
+    if (!this.isPlay) {
+      myaudio.src = src
+      myaudio.play()
+      this.isPlay = true
+      this.$apply()
+    }
+  }
+  async onLoad (options) {
+    this.nodeId = options.nodeId
+    this.subject = options.subject
+    await this.fetchPracticeList()
+    myaudio.onEnded(() => {
+      this.isPlay = false
+      this.$apply()
+    })
+  }
+  onUnload () {
+    myaudio.stop()
+  }
+  onShow () {}
+  onReady () {}
+  // 同步练习题列表
+  async fetchPracticeList () {
+    let res = await request.authRequest({
+      url: api.syncPractices,
+      data: {
+        subject: this.subject,
+        nodeId: this.nodeId
+      }
+    })
+    if (res.statusCode === 200) {
+      let practiceList = res.data.data
+      practiceList.list.map(v => {
+        if (v.options instanceof Array) {
+          v.options.map((k, i) => {
+            k['isSelected'] = 0
+          })
+          if (v.type === 6) {
+            let str = v.stem
+            v.stem = str.replace(/#A#/gi, '__')
+            v['counter'] = 0
+            v.options.map(l => {
+              l['content2'] = ''
+              l['index2'] = 0
+            })
+          }
+        }
+        v['isDone'] = false
+        v['isRight'] = false
+        v['isShowAnswer'] = false
+      })
+      this.practiceList = practiceList.list
+      this.rate = 100 / this.practiceList.length
+      this.practice = this.practiceList[0]
+      this.percent = this.rate
+      this.params.groupId = practiceList.groupId
+      this.params.scene = practiceList.scene
+      this.$apply()
+      if (this.practice.stemAudio !== '') {
+        this.playAudio(this.practice.stemAudio)
+      }
+    }
+  }
+  // 提交答案
+  async submitAnswer () {
+    let res = await request.authRequest({
+      url: api.answers,
+      method: 'POST',
+      data: this.params
+    }, false)
+    if (res.statusCode === 200) {
+      wx.redirectTo({
+        url: 'learn_canlendar?backHome=true'
+      })
+      this.$apply()
+    }
+  }
+}
+</script>
+<style lang="less">
+  .main-content{
+    padding-bottom: 210rpx;
+    .progress-container{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      padding-top: 30rpx;
+      padding-bottom: 20rpx;
+      .text{
+        font-size: 14px;
+        color: #999999;
+      }
+      .progress-bar{
+        flex: 155px 0 0;
+        margin: 0 10px;
+      }
+      .progress-num{
+        font-size: 14px;
+        color: #999999;
+      }
+    }
+    .practice{
+      .sub-title{
+        background: #fff;
+        padding: 30rpx;
+        .tingtong{
+          width: 39px;
+          height: 39px;
+        }
+      }
+      .select-container{
+        padding: 30rpx;
+        .select{
+          .select-content{
+            .select-item{
+              background: #fff;
+              padding: 16rpx 0 16rpx 20rpx;
+              border-radius: 10rpx;
+              margin-bottom: 30rpx;
+              display: flex;
+              align-items: top;
+              .item-order{
+                margin-right: 5px;
+              }
+            }
+            .active{
+              background: #FFC662;
+            }
+          }
+        }
+        .contact-word{
+          background: #fff;
+          padding: 20rpx;
+          border-radius: 10rpx;
+          .answer{
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            view{
+              padding: 0px 20px;
+              border-bottom: 1px solid #333333;
+              margin-right: 5px;
+              margin-bottom: 10px;
+              height: 20px;
+            }
+          }
+          .word-content{
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            view{
+              padding: 8px 15px;
+              background: #F0F0F0;
+              border-radius: 5px;
+              margin-right: 10px;
+              margin-bottom: 10px;
+            }
+          }
+        }
+        .result-container{
+          padding: 0 30rpx 30rpx 30rpx;
+          background: #fff;
+          border-radius: 10rpx;
+          view{
+            font-size: 14px;
+          }
+          .res{
+            text-align: center;
+            padding: 20rpx 0;
+          }
+          .right{
+            color: #4DC246;
+          }
+          .error{
+            color: #F34336;
+          }
+          .analysis{
+            margin-top: 10px;
+          }
+        }
+      }
+    }
+    .footer{
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      background: #fff;
+      padding: 56rpx 0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      .btn-hhh{
+        padding: 20rpx 80rpx;
+        color: #fff;
+        font-size: 18px;
+        border-radius: 44rpx;
+        background: #DDDDDD;
+        &.active{
+          background: #FFC662;
+        }
+      }
+    }
+  }
+</style>

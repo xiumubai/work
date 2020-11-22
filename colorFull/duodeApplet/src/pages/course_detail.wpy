@@ -1,0 +1,1056 @@
+<template>
+  <view class="container">
+    <topNav title="课程详情" isShowBack="true" :backHome.sync="backHome"></topNav>
+    <view class="main-content">
+      <view class="coursedetail-container">
+        <!-- 视频播放 -->
+        <view class="course-video" wx:if="{{resourceType === 1}}">
+          <video
+            id="myVideo"
+            class="video-style"
+            src="{{sourceSrc}}"
+            object-fit="contain"
+            bindplay="playVideo"
+            bindpause="pauseVideo"
+            custom-cache="false"
+            poster="{{poster}}"
+            autoplay>
+          </video>
+        </view>
+        <!-- 音乐播放 -->
+        <view class="course-audio" wx:if="{{resourceType === 2}}">
+          <view class="banner-img bg-f3">
+            <image src="{{poster}}"/>
+          </view>
+          <view class="audio-container">
+            <view class="progress">
+              <view class="start fz24 c666">{{currentTime}}</view>
+              <view class="progress-line">
+                <text class="progress-line-active" style="width:{{circleLeft}}rpx"/>
+                <text class="progress-circle" @touchmove.stop="dragMove" @touchstart.stop="dragStart" @touchend.stop="dragEnd" style="left:{{circleLeft}}rpx"></text>
+                <text class="progress-line-total" style="width:{{500-circleLeft}}rpx"/>
+              </view>
+              <view class="end fz24 c666">{{duration}}</view>
+            </view>
+            <view class="audio-edit">
+              <view class="last">
+                <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_audio_last.png"/>
+              </view>
+              <view class="play">
+                <image @tap="playAudio" wx:if="{{!playState}}" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_audio_stop.png"/>
+                <image @tap="pauseAudio" wx:else="{{playState}}" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_audio_play.png"/>
+              </view>
+              <view class="next">
+                <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_audio_next.png"/>
+              </view>
+            </view>
+          </view>
+        </view>
+        <!-- 图片 -->
+        <view class="course-img" wx:if="{{resourceType === 3}}">
+          <image src="{{poster}}" mode="aspectFill"/>
+        </view>
+        <!-- 课程详情 -->
+        <view class="course-mes bg-ff">
+          <view class="title">
+            {{courseDetail.name}}
+          </view>
+          <view class="tags">
+            <repeat for="{{courseDetail.tags}}" key="index" item="tag">
+              <view class="item">{{tag.name}}</view>
+            </repeat>
+          </view>
+          <view class="stu flex">
+            <view class="c666 fz24 flex1" wx:if="{{resourceType === 1}}">{{courseDetail.learnNumber}}个宝宝正在看</view>
+            <view class="c666 fz24 flex1" wx:if="{{resourceType === 2}}">{{courseDetail.learnNumber}}个宝宝正在听</view>
+          </view>
+          <button class="share-btn" open-type="share" @tap="share" hover-class="none">
+            <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_share_bg.png" />
+          </button>
+        </view>
+        <view class="border-1px"></view>
+        <!-- 机构 -->
+        <view class="home flex bg-ff">
+          <view class="flex">
+            <view class="icon avatar">
+              <image src="{{courseDetail.org.logo}}"/>
+            </view>
+            <view class="fz32">
+              {{courseDetail.org.name}}
+            </view>
+          </view>
+          <view class="link-right flex">
+            <view class="c999 fz24">共{{courseDetail.org.courseNumber}}个课程</view>
+          </view>
+        </view>
+        <!-- 选项卡 -->
+        <view class="nav-tabbar">
+          <view class="tabbar-container bg-ff" wx:if="{{hidNavTabBar == 1}}">
+            <repeat for="{{nav}}" key="index">
+              <view class="nav-item">
+                <view class="nav-text {{currentData == index ? 'text-active' : ''}}" bindtap="bindClick" data-current="{{index}}">{{item}}</view>
+                <view class="nav-border {{currentData == index ? 'border-active' : ''}}"></view>
+              </view>
+            </repeat>
+          </view>
+          <view class="border-1px"></view>
+          <view class="tabbar-swiper bg-ff">
+            <!-- 课程简介 -->
+            <view class="desc" wx:if="{{currentData === 0}}">
+              <repeat for="{{content}}" key="index">
+                <video wx:if="{{item.type === 'video'}}" src="{{item.src}}"></video>
+                <audio wx:if="{{item.type === 'audio'}}" src="{{item.src}}" controls loop></audio>
+                <rich-text wx:if="{{item.type === 'rich_text'}}" class="rich-text" nodes="{{item.content}}"></rich-text>
+              </repeat>
+            </view>
+            <!-- 课程目录 -->
+            <view class="catalog" wx:if="{{currentData === 1}}">
+              <repeat for="{{lessons}}" key="index" index="index">
+                <view class="item flex {{clickIndex === index ? 'item-active' : ''}}" data-id="{{item.id}}" data-isVisible="{{item.isVisible}}" data-index="{{index}}" @tap="playChange">
+                  <view class="flex">
+                    <view class="c999 fz30 xuhao">{{index + 1}}</view>
+                    <view class="fz30 name">{{item.name}}</view>
+                  </view>
+                  <view class="icon-video">
+                    <view class="free" wx:if="{{item.isVisible}}">
+                      <view class="cantry" wx:if="{{item.canTry}}">试学</view>
+                      <!-- <image wx:if="{{clickIndex === index}}" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_bofang_active.png"/>
+                      <image wx:else src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_bofang.png"/> -->
+                    </view>
+                    <view class="nofree" wx:else>
+                      <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_suo.png"/>
+                    </view>
+                  </view>
+                </view>
+              </repeat>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <!-- 底部 -->
+    <form wx:if="{{ isShowBuyBotton }}" style="display: block; width: 100;" report-submit="true" bindsubmit="formSubmit">
+      <view class="footer" wx:if="{{!courseDetail.isLearning}}">
+        <view class="free" wx:if="{{courseDetail.isFree}}">
+          <!-- 免费课程 -->
+          <button class="free-btn footer-btn" form-type="submit" @tap="buyClick" data-type="1" wx:if="{{courseDetail.lessonNumber > 0}}">免费试学</button>
+          <button class="free-btn footer-btn" wx:else
+            open-type="contact" bindcontact="handleContact"
+            form-type="submit"
+            session-from="{{sessionFrom}}"
+            send-message-title="多得课堂"
+            send-message-path="/pages/course_detail?id={{id}}"
+            send-message-img="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_lingqu.png"
+            show-message-card="true">免费试学</button>
+        </view>
+        <view class="no-free" wx:else>
+          <!-- 收费课程 -->
+          <view wx:if="{{courseDetail.lessonNumber > 0}}" style="width: 100%">
+            <view wx:if="{{courseDetail.canTryLessonNumber > 0 || courseDetail.freeLessonNumber > 0}}" style="display:flex; width: 100%">
+              <button class="buy-btn footer-btn" form-type="submit" @tap="buyClick" data-type="2">现在购买</button>
+              <button class="free-btn footer-btn" form-type="submit" @tap="buyClick" data-type="1">免费试学</button>
+            </view>
+            <view wx:else>
+              <button class="buy-btn footer-btn" form-type="submit" @tap="buyClick" data-type="2">现在购买</button>
+            </view>
+          </view>
+          <view wx:else style="width: 100%">
+            <button class="buy-btn footer-btn"
+              form-type="submit"
+              open-type="contact" bindcontact="handleContact"
+              session-from="{{sessionFrom}}"
+              send-message-title="多得课堂"
+              send-message-path="/pages/course_detail?id={{id}}"
+              send-message-img="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_lingqu.png"
+              show-message-card="true">现在购买</button>
+          </view>
+        </view>
+      </view>
+    </form>
+    <!-- 弹出框 -->
+    <Popup :isPopupShow.sync="isPopupShow" wx:if="{{isPopupShow}}">
+      <view class="step-one-container" slot="title">
+        <view class="" wx:if="{{step === 0}}">
+          <view class="title fz32">选择学习课时数</view>
+          <view class="classes">
+            <repeat for="{{classItem}}" key="index">
+              <view class="class-item {{currentIndex === index ? 'class-item-active' : ''}}" catchtap="selectClassItem" data-index="{{index}}">{{item.name}}</view>
+            </repeat>
+          </view>
+          <view class="title fz32">选择期望的每周学习日</view>
+          <view class="weeks">
+            <repeat for="{{weeks}}" key="index">
+              <view class="week-item {{item.isSelect ? 'week-item-active' : ''}}" catchtap="selectWeekItem" data-index="{{index}}">
+                <view class="c666 fz24 title">星期</view>
+                <view class="c666 fz44 title">{{item.week}}</view>
+              </view>
+            </repeat>
+          </view>
+          <view class="tips">
+            <view class="tip-item flex">
+              <view class="bg bg1"></view>
+              <view class="fz20 c999">可选</view>
+            </view>
+            <view class="tip-item flex" style="margin: 0 34rpx;">
+              <view class="bg bg2"></view>
+              <view class="fz20 c999">不可选</view>
+            </view>
+            <view class="tip-item flex">
+              <view class="bg bg3"></view>
+              <view class="fz20 c999">已选</view>
+            </view>
+          </view>
+          <button class="btn-common btn-next" catchtap="nextCilckStepOne">下一步</button>
+        </view>
+        <view class="" wx:else>
+          <view class="title fz32">设置每天的学习时间</view>
+          <view class="" style="margin:160rpx 0;">
+            <picker mode="time" bindchange="bindTimeChange" value="{{clockTime}}">
+              <view class="picker">
+                <view class="picker-container">
+                  <view class="fz36">{{clockTime}}</view>
+                  <view class="icon-right"></view>
+                </view>
+                <view class="border-bottom"></view>
+              </view>
+            </picker>
+          </view>
+          <button class="btn-common btn-next" @tap="nextCilckStepTwo">下一步</button>
+        </view>
+      </view>
+    </Popup>
+  </view>
+</template>
+<script>
+  /**
+   * 页面未完成功能
+  */
+  import wepy from 'wepy'
+
+  import request from '@/utils/request'
+  import api from '@/api/api'
+  import topNav from '@/components/topNav'
+  import Popup from '@/components/popup'
+  let startPageX = 0
+  export default class CourseDetail extends wepy.page {
+    config = {
+      navigationBarTitleText: '课程详情'
+    }
+    components = {
+      topNav: topNav,
+      Popup: Popup
+    }
+    data = {
+      id: '',
+      courseDetail: null,
+      lessons: null,
+      resourceType: 0,
+      currentData: 1,
+      clickIndex: 0,
+      step: 0,
+      progressWidth: 0,
+      currentIndex: 1,
+      circleLeft: 0,
+      canTryLessonNumber: 0,
+      is_all: 1,
+      hidNavTabBar: 0,
+      currentTime: '00:00',
+      duration: '00:00',
+      clockTime: '19:00',
+      time: '',
+      type: '',
+      sourceSrc: '',
+      poster: '',
+      author: '',
+      name: '',
+      playId: '',
+      course_id: '',
+      show: true,
+      isPopupShow: false,
+      playState: false,
+      backHome: false,
+      content: [],
+      sessionFrom: null,
+      innerAudioContext: wx.createInnerAudioContext(),
+      nav: ['课程简介', '课程目录'],
+      classItem: [{name: '试学课课时', is_all: 0}, {name: '全部课程', is_all: 1}],
+      weeks: [{week: 1, isSelect: false}, {week: 2, isSelect: false}, {week: 3, isSelect: false}, {week: 4, isSelect: false}, {week: 5, isSelect: false}, {week: 6, isSelect: false}, {week: 7, isSelect: false}]
+    }
+
+    computed = {
+      isShowBuyBotton () {
+        return !this.$parent.globalData.isiOS
+      }
+    }
+
+    methods = {
+      formSubmit (e) {
+        wepy.setStorageSync('formId', e.detail.formId)
+      },
+      // 点击切换课程简介,课程目录
+      bindClick (e) {
+        let current = e.target.dataset.current
+        if (this.currentData === current) {
+          return false
+        } else {
+          this.currentData = current
+          this.$apply()
+        }
+      },
+      // 开始播放视频
+      playVideo (e) {
+        this.fecthPlay(this.playId)
+      },
+      // 暂停视频
+      pauseVideo () {
+      },
+      // 点击目录切换视频/音频
+      playChange (e) {
+        let id = e.currentTarget.dataset.id
+        let isvisible = e.currentTarget.dataset.isvisible
+        let index = e.currentTarget.dataset.index
+        if (isvisible) {
+          // 视频免费
+          if (this.resourceType === 2) {
+            this.innerAudioContext.pause()
+            this.playState = false
+            this.$apply()
+          }
+          this.playId = id
+          this.clickIndex = index
+          this.$apply()
+          this.fetchSourceSrc(id)
+        } else {
+          // 视频不免费，无法观看，提示用户
+          wx.showModal({
+            title: '提示',
+            content: '该视频暂时无法观看',
+            showCancel: false
+          })
+        }
+      },
+
+      /**
+       * 音频播放流程
+       * 创建createInnerAudioContext
+       * 默认不播放，点击播放按钮播放，
+       * 进度条可以拖动（问题：拖动的时候会跳动，不健壮）
+       * 离开页面音乐关闭
+       */
+      playAudio () {
+        this.innerAudioContext.play()
+        this.playState = true
+        this.fecthPlay(this.playId)
+        this.$apply()
+      },
+      pauseAudio () {
+        this.innerAudioContext.pause()
+        this.playState = false
+        this.$apply()
+      },
+      stopAudio() {
+        this.innerAudioContext.stop()
+      },
+      dragStart(e) {
+        startPageX = e.touches[0].clientX
+        this.innerAudioContext.stop()
+        this.playState = false
+        this.$apply()
+      },
+      dragEnd(e) {
+        if (this.innerAudioContext.paused) {
+          this.innerAudioContext.play()
+          this.playState = true
+          this.$apply()
+        }
+      },
+      dragMove(e) {
+        let newLeft = 0
+        if (
+          (this.circleLeft >= startPageX - e.touches[0].clientX &&
+            startPageX - e.touches[0].clientX >= 0) ||
+          (this.circleLeft <= 396 + startPageX - e.touches[0].clientX &&
+            startPageX - e.touches[0].clientX <= 0)
+        ) {
+          newLeft = (e.touches[0].clientX - startPageX) * 2
+          startPageX = e.touches[0].clientX
+          this.circleLeft = newLeft + this.circleLeft
+          let newPosition = this.innerAudioContext.currentTime
+          newPosition = this.circleLeft / 396 * this.innerAudioContext.duration
+          this.innerAudioContext.seek(newPosition)
+          this.$apply()
+        }
+      },
+      updateTime: () => {
+        this.circleLeft =
+          this.innerAudioContext.currentTime /
+          this.innerAudioContext.duration *
+          396
+        this.currentTime = `${
+          Math.round(this.innerAudioContext.currentTime / 60) < 10
+            ? `0${Math.round(this.innerAudioContext.currentTime / 60)}`
+            : `${Math.round(this.innerAudioContext.currentTime / 60)}`
+        }:${
+          Math.round(this.innerAudioContext.currentTime % 60) < 10
+            ? `0${Math.round(this.innerAudioContext.currentTime % 60)}`
+            : `${Math.round(this.innerAudioContext.currentTime % 60)}`
+        }`
+        this.duration = `${
+          Math.round(this.innerAudioContext.duration / 60) < 10
+            ? `0${Math.round(this.innerAudioContext.duration / 60)}`
+            : `${Math.round(this.innerAudioContext.duration / 60)}`
+        }:${
+          Math.round(this.innerAudioContext.duration % 60) < 10
+            ? `0${Math.round(this.innerAudioContext.duration % 60)}`
+            : `${Math.round(this.innerAudioContext.duration % 60)}`
+        }`
+        this.$apply()
+        setTimeout(this.methods.updateTime, 1000)
+      },
+
+      /**
+       * 购买、试学课程流程
+       * 1.选择学习课时（必选）
+       * 2.选择每周学习时间（必选）
+       * 3.选择每天的学习时间
+       */
+
+      // 点击购买,弹出popUp
+      buyClick (e) {
+        this.type = e.currentTarget.dataset.type
+        this.isPopupShow = true
+        this.$apply()
+      },
+      // 选择学习课时
+      selectClassItem (e) {
+        let index = e.currentTarget.dataset.index
+        this.currentIndex = index
+        this.is_all = this.classItem[index].is_all
+        this.$apply()
+      },
+      // 选择每周学习时间
+      selectWeekItem (e) {
+        let index = e.currentTarget.dataset.index
+        let arr = this.weeks
+        for (let i = 0; i < arr.length; i++) {
+          if (i === index) {
+            arr[i].isSelect = !arr[i].isSelect
+          }
+        }
+        this.weeks = arr
+        this.$apply()
+      },
+      // 第一步
+      nextCilckStepOne () {
+        let flag = false
+        let arr = this.weeks
+        let selectWeek = []
+        for (let i = 0; i < arr.length; i++) {
+          if (arr[i].isSelect === true) {
+            selectWeek.push(arr[i].week)
+            flag = true
+          }
+        }
+        if (flag) {
+          if (this.is_all === 0 && selectWeek.length <= this.canTryLessonNumber) {
+            this.step = 1
+            this.$apply()
+          } else if (this.is_all === 1 && selectWeek.length <= this.lessons.length) {
+            this.step = 1
+            this.$apply()
+          } else {
+            wepy.showModal({
+              title: '提示',
+              content: '所选学习日不能大于学习课时',
+              showCancel: false
+            })
+          }
+        } else {
+          this.step = 0
+          this.$apply()
+          wepy.showModal({
+            title: '提示',
+            content: '请先选择学习日',
+            showCancel: false
+          })
+        }
+      },
+      // 第二步
+      nextCilckStepTwo () {
+        let circle = []
+        let weekArr = this.weeks
+        for (let i = 0; i < weekArr.length; i++) {
+          if (weekArr[i].isSelect) {
+            if (weekArr[i].week === 7) {
+              weekArr[i].week = 0
+            }
+            circle.push(weekArr[i].week)
+          }
+        }
+        let params = {
+          course_id: this.id,
+          is_all: this.is_all,
+          time: this.clockTime,
+          type: this.type,
+          circle: circle
+        }
+        this.isPopupShow = false
+        this.step = 0
+        this.$apply()
+        wepy.setStorageSync('plantaskParams', params)
+        wepy.navigateTo({
+          url: '/pages/order_detail?type=' + this.type
+        })
+      },
+      // 选择时间
+      bindTimeChange (e) {
+        this.clockTime = e.detail.value
+      },
+      // 客服消息返回
+      handleContact (e) {
+        console.log(e)
+      }
+    }
+    events = {
+      // 关闭popup
+      bindPopupFn(isPopupShow) {
+        this.isPopupShow = isPopupShow
+        this.step = 0
+        this.$apply()
+      }
+    }
+
+    async onShow () {
+      // 每次进入页面之前重置数据
+      this.hidNavTabBar = 0
+      // this.currentData = 1
+      // this.content = []
+      this.$apply()
+
+      let hidNavTabBar = 0
+      let currentData = 1
+
+      // 用户登陆
+      let getCurrentUserReponse = await request.getCurrentUser()
+      if (getCurrentUserReponse.statusCode === 200) {
+        console.log('用户已经登陆')
+      }
+
+      // 课程详情
+      let courseResponse = await request.authRequest(api.coursesDetail + '/' + this.id)
+      if (courseResponse.statusCode === 200) {
+        this.courseDetail = courseResponse.data.data
+        this.canTryLessonNumber = courseResponse.data.data.canTryLessonNumber
+        this.classItem[0].name = '试学课' + this.canTryLessonNumber + '课时'
+        this.$apply()
+        wepy.setStorageSync('courseDetail', this.courseDetail)
+      }
+
+      // 课程简介
+      let contents = []
+      if (this.courseDetail.desJson !== null && this.courseDetail.desJson.content.length > 0) {
+        let resJson = this.courseDetail.desJson.content
+        // 处理富文本图片自适应
+        for (var i = 0; i < resJson.length; i++) {
+          if (resJson[i].type === 'rich_text') {
+            let content = resJson[i].content.replace(/<img/gi, '<img style="width:100%;height:auto;display: block;"')
+            resJson[i].content = content
+          }
+        }
+        contents = this.courseDetail.desJson.content
+        this.$apply()
+        hidNavTabBar = 1
+      }
+      this.content = contents
+      this.$apply()
+
+      // 课程列表
+      let lessonsResponse = await request.authRequest(api.lessonsList + '/' + this.id + '/lessons')
+      if (lessonsResponse.statusCode === 200) {
+        this.lessons = lessonsResponse.data.data.list
+        this.$apply()
+      }
+
+      // 课程目录
+      let lesson = this.lessons
+      let flag = false
+      // 加载视频默认的播放地址
+      if (lesson.length > 0) {
+        for (let i = 0; i < lesson.length; i++) {
+          if (lesson[i].isCurrent) {
+            // 视频指定为上次一次播放的
+            this.fetchSourceSrc(lesson[i].id)
+            this.clickIndex = i
+            this.playId = lesson[i].id
+            flag = true
+            this.$apply()
+          }
+        }
+        if (!flag) {
+          // 没有默认播放的视频，默认为第一个
+          this.fetchSourceSrc(lesson[0].id)
+          // 保存id
+          this.playId = lesson[0].id
+          this.$apply()
+        }
+        hidNavTabBar = hidNavTabBar & 1
+      } else {
+        // resourceType = 3，没有视频和音频，只展示背景图
+        this.resourceType = 3
+        this.poster = this.courseDetail.faceUrl
+        hidNavTabBar = 0
+        currentData = 0
+      }
+
+      this.hidNavTabBar = hidNavTabBar
+      this.currentData = currentData
+      this.$apply()
+    }
+
+    async onLoad (options) {
+      this.id = options.id
+      let sessionFromObj = {
+        courseId: this.id,
+        path: '/pages/course_detail?id=' + this.id,
+        query: {
+          courseId: this.id
+        }
+      }
+      this.sessionFrom = JSON.stringify(sessionFromObj)
+      this.$apply()
+      if (options.backHome) {
+        this.backHome = options.backHome
+        this.$apply()
+      }
+    }
+
+    onUnload () {
+      // 页面卸载的时候停掉音乐播放
+      this.innerAudioContext.stop()
+      this.playState = false
+      this.backHome = false
+      this.isPopupShow = false
+      this.step = 0
+      this.$apply()
+    }
+
+    // 每次播放时记录此视频是否已经播放，用于显示浏览记录
+    async fecthPlay (id) {
+      let res = await request.authRequest({
+        url: api.lessonLearn + '/' + id + '/learn',
+        data: {
+          formId: ''
+        },
+        method: 'POST'
+      }, false)
+      console.log(res.data.msg)
+    }
+
+    // 视频、音频资源
+    async fetchSourceSrc (id) {
+      let res = await request.authRequest(api.resource + '/' + id)
+      let resource = res.data.data
+      if (resource.type === 1) {
+        // type=1为视频播放
+        this.sourceSrc = resource.resourceUrl
+        this.poster = resource.faceUrl
+        this.resourceType = 1
+        this.$apply()
+      } else if (resource.type === 2) {
+        // type=2为音频播放
+        this.sourceSrc = resource.resourceUrl
+        this.poster = resource.faceUrl
+        this.name = resource.name
+        this.resourceType = 2
+        this.createInnerAudio()
+        this.$apply()
+      }
+    }
+    // 音频播放
+    createInnerAudio () {
+      this.innerAudioContext = wepy.createInnerAudioContext()
+      this.innerAudioContext.src = this.sourceSrc
+      this.innerAudioContext.onPlay(() => {
+        this.methods.updateTime()
+        this.$apply()
+      })
+      // ios静音模式也能播放
+      wx.setInnerAudioOption({
+        obeyMuteSwitch: false
+      })
+      this.innerAudioContext.autoplay = false
+      this.innerAudioContext.obeyMuteSwitch = false
+      this.innerAudioContext.onError(res => {
+        console.log(res.errMsg)
+        console.log(res.errCode)
+      })
+      this.$apply()
+    }
+    // 分享
+    onShareAppMessage (e) {
+      let title = this.courseDetail.name
+      if (e.from === 'button') {
+        return {
+          title: title,
+          path: '/pages/course_detail?id=' + this.id + '&backHome=true',
+          imageUrl: this.poster + '?x-oss-process=image/resize,m_fill,w_800,h_640'
+        }
+      } else if (e.from === 'menu') {
+        return {
+          title: title,
+          path: '/pages/course_detail?id=' + this.id + '&backHome=true',
+          imageUrl: this.poster + '?x-oss-process=image/resize,m_fill,w_800,h_640'
+        }
+      }
+    }
+  }
+</script>
+<style lang="less">
+  .coursedetail-container{
+    .course-video{
+      height: 420rpx;
+      width: 100%;
+      .video-style{
+        width: 100%;
+        height: 420rpx;
+        .coversrc{
+          position: relative;
+          width: 100%;
+          height: 100%;
+          .img{
+            width: 100%;
+          }
+          .playbtn{
+            position: absolute;
+            top:50%;
+            left:50%;
+            background: #ffffff;
+            width: 116rpx;
+            height:116rpx;
+            border-radius: 50%;
+            margin-top: -58rpx;
+            margin-left: -58rpx;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+        }
+      }
+    }
+    .course-audio{
+      background: #ffffff;
+      .banner-img{
+        width: 100%;
+        height: 420rpx;
+        margin-bottom: 40rpx;
+      }
+      audio{
+        width: 100%;
+      }
+      .audio-container {
+        width: 100%;
+        box-sizing: border-box;
+        background: #ffffff;
+        padding: 0 40rpx;
+        .progress{
+          display: flex;
+          align-items: center;
+          margin-bottom: 28rpx;
+          .progress-line {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin: 0 20rpx;
+            .progress-line-active {
+              display: inline-block;
+              width: 0rpx;
+              font-size: 0;
+              height:8rpx;
+              background:rgba(97,186,255,1);
+              border-radius:4rpx;
+            }
+            .progress-circle {
+              position: absolute;
+              left: 0rpx;
+              width: 56rpx;
+              height: 56rpx;
+              box-sizing: border-box;
+              background-image: url('data:image/png;base64,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');
+              background-size: 100% 100%;
+              background-repeat: no-repeat;
+              border-radius: 50%;
+            }
+            .progress-line-total {
+              display: inline-block;
+              width: 226rpx;
+              font-size: 0;
+              height:8rpx;
+              background:rgba(238,238,238,1);
+              border-radius:4rpx;
+            }
+          }
+        }
+        .audio-edit{
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          .last{
+            width: 38rpx;
+            height: 44rpx;
+          }
+          .next{
+            width: 38rpx;
+            height: 44rpx;
+          }
+          .play{
+            width: 116rpx;
+            height: 116rpx;
+            margin: 0 80rpx;
+          }
+        }
+      }
+    }
+    .course-img{
+      width: 100%;
+      height: 420rpx;
+    }
+    .course-mes{
+      padding: 0 40rpx;
+      position: relative;
+      .text-number{
+        margin-top: 40rpx;
+      }
+      .title{
+        font-size: 32rpx;
+        padding: 20rpx 0;
+      }
+      .tags{
+        display: flex;
+        .item{
+          background: #999999;
+          border-radius: 8rpx;
+          color: #ffffff;
+          font-size: 20rpx;
+          text-align: center;
+          padding: 0 20rpx;
+          height: 30rpx;
+          line-height: 30rpx;
+          margin-right: 10rpx;
+        }
+      }
+      .share-btn{
+        position: absolute;
+        right: 40rpx;
+        bottom: 20rpx;
+        width: 96rpx;
+        height: 96rpx;
+        border-radius: 50%;
+        text-align: center;
+        padding: 0;
+      }
+      .stu{
+        padding: 20rpx 0;
+        .share{
+          color: #ffffff;
+          border-radius: 30rpx;
+          background: #FF382B;
+          height: 50rpx;
+          line-height: 50rpx;
+          font-size: 26rpx;
+        }
+      }
+    }
+    .home{
+      padding: 20rpx 40rpx;
+      margin-bottom: 10rpx;
+      .avatar{
+        width: 88rpx;
+        height: 88rpx;
+        border-radius: 50%;
+        margin-right: 10rpx;
+        image{
+          border-radius: 50%;
+        }
+      }
+    }
+    .nav-tabbar{
+      padding-bottom: 116rpx;
+      .tabbar-swiper{
+        .desc{
+          padding: 0 40rpx;
+          line-height: 66rpx;
+          .rich-text{
+            font-size: 32rpx;
+          }
+          video{
+            width: 100%;
+          }
+          audio{
+            width: 100%;
+          }
+        }
+        .catalog{
+          margin-left: 40rpx;
+          .item{
+            padding: 40rpx 0;
+            padding-right: 54rpx;
+            border-bottom: 1rpx solid #F3F3F3;
+            .xuhao{
+              margin-right: 30rpx;
+            }
+            .icon-video{
+              // flex: 20rpx 0 0;
+              .free{
+                .cantry{
+                  color: #FF9300;
+                  font-size: 28rpx;
+                }
+              }
+              .nofree{
+                width: 20rpx;
+                height: 26rpx;
+              }
+            }
+          }
+          .item-active{
+            .xuhao{
+              color: #333333;
+              font-weight: 700;
+            }
+            .name{
+              font-weight: 700;
+            }
+          }
+        }
+      }
+    }
+  }
+  .footer{
+    display: flex;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    .footer-btn{
+      height: 116rpx;
+      line-height: 116rpx;
+      text-align: center;
+      color: #ffffff;
+      font-size: 32rpx;
+      border-radius: 0;
+    }
+    .no-free{
+      display: flex;
+      width: 100%;
+    }
+    .free{
+      flex: 1;
+    }
+    .buy-btn{
+      flex: 308rpx 0 0;
+      background: #32C5FF;
+    }
+    .free-btn{
+      flex: 1;
+      background: #F7B500;
+    }
+
+  }
+  .step-one-container{
+    padding: 40rpx;
+    .classes{
+      display: flex;
+      align-items: center;
+      padding: 40rpx 0;
+      .class-item{
+        font-size: 24rpx;
+        color: #666666;
+        width: 194rpx;
+        height: 62rpx;
+        line-height: 62rpx;
+        border-radius: 44rpx;
+        background: #F5F5F5;
+        text-align: center;
+        margin-right: 20rpx;
+      }
+      .class-item-active{
+        background: #F7B500;
+        color: #ffffff;
+      }
+    }
+    .weeks{
+      padding: 40rpx 0;
+      display: flex;
+      justify-content: space-around;
+      .week-item{
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #F5F5F5;
+        width: 90rpx;
+        height: 140rpx;
+        border-radius: 8rpx;
+        margin-right: 8rpx;
+      }
+      .week-item:last-child{
+        margin-right: 0rpx;
+      }
+      .week-item-active{
+        background: #F7B500;
+        .title{
+          color: #ffffff;
+        }
+      }
+    }
+    .tips{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      .tip-item{
+        .bg{
+          width: 52rpx;
+          height: 18rpx;
+          border-radius: 8rpx;
+        }
+        .bg1{
+          background: #D8D8D8;
+        }
+        .bg2{
+          background: #999999;
+        }
+        .bg3{
+          background: #F7B500;
+        }
+      }
+    }
+    .btn-next{
+      margin-top: 60rpx;
+      margin-bottom: 60rpx;
+    }
+    .picker{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      width: 100%;
+      .picker-container{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        margin-bottom: 14rpx;
+        .icon-right{
+          margin-left: 20rpx;
+        }
+      }
+      .border-bottom{
+        width: 154rpx;
+        height: 2rpx;
+        background: #CCCCCC;
+      }
+    }
+  }
+</style>

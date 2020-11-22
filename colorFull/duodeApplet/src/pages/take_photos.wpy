@@ -1,0 +1,100 @@
+<template>
+  <view class="container">
+    <topNav title="课后听写" isShowBack="true"></topNav>
+    <view class="main-content">
+      <button bindtap="uploadImage">上传图片</button>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+import JsSHA from 'jssha'
+export default class ListenWrite extends wepy.page {
+  config = {
+    navigationBarTitleText: '课后听写'
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    voice: ''
+  }
+  onLoad () {
+
+  }
+  methods = {
+    uploadImage () {
+      let that = this
+      wx.chooseImage({
+        success: res => {
+          that.urlTobase64(res.tempFilePaths[0])
+        }
+      })
+    }
+  }
+  urlTobase64 (url) {
+    let that = this
+    wx.request({
+      url: url,
+      responseType: 'arraybuffer', // 最关键的参数，设置返回的数据格式为arraybuffer
+      success: res => {
+        // 把arraybuffer转成base64
+        let base64 = wx.arrayBufferToBase64(res.data)
+        // 不加上这串字符，在页面无法显示的哦
+        // base64 = 'data:image/jpeg;base64,' + base64
+        // console.log(base64)
+        that.shibie(base64)
+      }
+    })
+  }
+
+  async shibie (imgurl) {
+    let rand = Math.random()
+    let timestamp = Math.round(new Date().getTime() / 1000)
+    console.log(timestamp)
+    let str1 = imgurl.substring(0, 10)
+    let str2 = imgurl.substring(imgurl.length - 10)
+    let input = str1 + imgurl.length + str2
+    let appKey = '2ad81633bbf4d0af'
+    let secret = 'GunCIHMmIkDIl7Ub5eXSgjsqdfJVVFhd'
+    let sign = this.sha256(appKey, input, rand, timestamp, secret)
+    let res = await wepy.request({
+      url: 'https://openapi.youdao.com/ocrapi',
+      method: 'POST',
+      data: {
+        img: imgurl,
+        langType: 'zh-CHS',
+        detectType: '10012',
+        imageType: 1,
+        appKey: appKey,
+        salt: rand,
+        curtime: timestamp,
+        sign: sign,
+        docType: 'json',
+        signType: 'v3',
+        angle: 1,
+        column: 'columns',
+        rotate: 'donot_rotate'
+      },
+      header: {'Content-Type': 'application/x-www-form-urlencoded'}
+    })
+    if (res.statusCode === 200) {
+      console.log(res.data.Result)
+    }
+  }
+
+  sha256 (appKey, input, salt, curtime, secret) {
+    let sign = appKey + input + salt + curtime + secret
+    console.log(sign)
+    let shaObj = new JsSHA('SHA-256', 'TEXT')
+    shaObj.update(sign)
+    var hash = shaObj.getHash('HEX')
+    console.log(hash)
+    return hash
+  }
+}
+</script>
+<style lang="less">
+
+</style>

@@ -1,0 +1,281 @@
+<template>
+  <view class="container">
+    <topNav title="电子课本" isShowBack="true"></topNav>
+    <view class="main-container">
+      <view class="booklist-container">
+        <view class="bookoptions-container">
+          <repeat for="{{bookoptions}}" item="item" kye="key" index="index">
+            <view class="grade-container grade-content" bindtap="bindShow({{item.id}})">
+              <view class="grade text">{{item.name}}</view>
+              <view class="angle-icon {{item.isFolder ? 'active' : ''}}"></view>
+            </view>
+          </repeat>
+        </view>
+        <view class="book-content">
+          <repeat for="{{booklist}}" item="item" key="key" index="index">
+            <view class="book-item br5" bindtap="bindChangeBook({{item.id}})">
+              <view class="left img">
+                <image src="{{item.faceUrl}}"/>
+              </view>
+              <view class="right">
+                <view class="title">{{item.gradeName}}{{item.termName}}</view>
+                <view class="sub-title">{{item.publisherName}}</view>
+              </view>
+            </view>
+          </repeat>
+        </view>
+      </view>
+      <van-popup 
+        show="{{ show }}" 
+        bind:close="onClose" 
+        position="top"
+        safe-area-inset-top="true">
+        <view class="grade-inner">
+          <view class="booklist-container">
+            <view class="bookoptions-container">
+              <repeat for="{{bookoptions}}" item="item" kye="key" index="index">
+                <view class="grade-container grade-content" bindtap="bindChange({{item.id}})">
+                  <view class="grade text">{{item.name}}</view>
+                  <view class="angle-icon {{item.isFolder ? 'active' : ''}}"></view>
+                </view>
+              </repeat>
+            </view>
+          </view>
+          <view class="grade-box">
+            <block>
+              <repeat for="{{bookoptionsList}}" item="item" key="key" index="index">
+                <view class="grade-item {{item.isSelected ? 'active' : ''}}" bindtap="bindChangeBookOptions({{item.id}}, {{item.type}})">{{item.name}}</view>
+              </repeat>
+            </block>
+          </view>
+        </view>
+      </van-popup>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import api from '@/api/api'
+import request from '@/utils/request'
+import topNav from '@/components/topNav'
+export default class BookList extends wepy.page {
+  config = {
+    navigationBarTitleText: '电子课本',
+    usingComponents: {
+      'van-popup': '../vant-weapp/popup/index'
+    }
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    term: 0,
+    subject: 0,
+    gradeId: 0,
+    apiUrl: '',
+    booklist: {},
+    gradeList: [],
+    termList: [],
+    bookoptionsList: [],
+    show: false,
+    bookoptions: [{id: 0, name: '一年级', isFolder: false}, {id: 1, name: '上册', isFolder: false}]
+  }
+  methods = {
+    bindShow (id) {
+      this.show = true
+      this.laodBookoptionsData(id)
+    },
+    bindChange (id) {
+      this.laodBookoptionsData(id)
+    },
+    onClose () {
+      this.close()
+    },
+    bindChangeBook (id) {
+      this.$parent.globalData.bookOptionsParams.map(v => {
+        if (v.type === this.$parent.globalData.bookOptionsType) {
+          v.bookId = id
+        }
+      })
+      wx.navigateBack({
+        delta: 1
+      })
+    },
+    bindChangeBookOptions (id, type) {
+      this.close()
+      if (type === 0) {
+        this.gradeId = id
+        this.gradeList = this.changeBookoptionsStaus(id, this.gradeList)
+        this.$apply()
+        this.fetchBookList()
+      } else {
+        this.term = id
+        this.termList = this.changeBookoptionsStaus(id, this.termList)
+        this.$apply()
+        this.fetchBookList()
+      }
+    }
+  }
+  onLoad (options) {
+    this.term = options.term
+    this.gradeId = options.gradeId
+    this.subject = options.subject
+    this.apiUrl = options.apiUrl
+    this.$apply()
+    this.fetchBookList()
+    this.fetchGrade()
+  }
+  onShow () {}
+  onReady () {}
+  // 电子课本列表
+  async fetchBookList () {
+    let res = await request.authRequest({
+      url: this.apiUrl,
+      data: {
+        term: this.term,
+        gradeId: this.gradeId,
+        subject: this.subject
+      }
+    })
+    if (res.statusCode === 200) {
+      this.booklist = res.data.data.list
+      this.bookoptions[0].name = this.booklist[0].gradeName
+      this.bookoptions[1].name = this.booklist[0].termName
+      this.$apply()
+    }
+  }
+  // 年级、上下册
+  async fetchGrade () {
+    let that = this
+    let res = await request.authRequest({
+      url: api.bookoptions,
+      data: {
+        formId: ''
+      }
+    })
+    if (res.statusCode === 200) {
+      let data = res.data.data
+      that.gradeList = that.addParamsTobookoptionsList(data.grades, 0)
+      that.termList = that.addParamsTobookoptionsList(data.terms, 1)
+      that.$apply()
+    }
+  }
+  addParamsTobookoptionsList (list, type) {
+    for (let i in list) {
+      list[i].isSelected = false
+      list[i].type = type
+    }
+    return list
+  }
+  changeBookoptionsStaus (id, list) {
+    for (let i in list) {
+      list[i].isSelected = false
+      if (id === list[i].id) {
+        list[i].isSelected = true
+      }
+    }
+    return list
+  }
+  close () {
+    this.show = false
+    this.bookoptions.map(v => {
+      v.isFolder = false
+    })
+    this.$apply()
+  }
+  laodBookoptionsData (id) {
+    this.bookoptions.map(v => {
+      v.isFolder = false
+    })
+    this.bookoptions[id].isFolder = true
+    this.bookoptionsList = id === 0 ? this.gradeList : this.termList
+    this.$apply()
+  }
+}
+</script>
+<style lang="less">
+.booklist-container{
+  .bookoptions-container{
+    height: 50px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: #fff;
+    .grade-content{
+      flex: 1;
+      display: flex;
+      height: 50px;
+      justify-content: center;
+      align-items: center;
+      .text{
+        font-size: 18px;
+        font-weight: bold;
+        margin-right: 5px;
+      }
+      .angle-icon{
+        width: 0;
+        height: 0;
+        transition: all .4s;
+        border-right:6px solid transparent;
+        border-left:6px solid transparent;
+        border-top:6px solid #333;
+        &.active{
+          transform: rotate(180deg);
+          border-top:6px solid #FFC067;
+        }
+      }
+    }
+  }
+  .book-content{
+    padding: 0 15px;
+    .book-item{
+      background: #fff;
+      display: flex;
+      margin-top: 20px;
+      padding: 10px;
+      .left{
+        flex: 75px 0 0;
+        height: 100px;
+        margin-right: 17px;
+      }
+      .right{
+        flex: 1;
+        .title{
+          font-weight: bold;
+          font-size: 18px;
+          margin-bottom: 10px;
+        }
+        .sub-title{
+          font-size: 14px;
+          color: #999;
+        }
+      }
+    }
+  }
+}
+.grade-inner{
+  .grade-box{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0 40rpx;
+    padding-top: 40rpx;
+    .grade-item{
+      width: 181rpx;
+      height: 71rpx;
+      line-height: 71rpx;
+      background: #F5F5F5;
+      font-size: 18px;
+      color: #000;
+      border-radius: 38rpx;
+      text-align: center;
+      margin-bottom: 34rpx;
+      &.active{
+        color: #fff;
+        background: #FFC067;
+      }
+    }
+  }
+}
+</style>

@@ -1,0 +1,65 @@
+<template>
+  <view class="container">
+    <topNav title="电子课本" isShowBack="true"></topNav>
+    <view class="main-container">
+      <view class="nav-tab" style="min-height: {{height}}px">
+        <van-tabs swipeable line-width="24" bind:change="tabChange">
+          <!-- 英语-->
+          <van-tab title="英语">
+            <Item1 subject="3"></Item1>
+          </van-tab>
+          <!-- 语文 -->
+          <van-tab title="语文">
+            <Item2 subject="1"></Item2>
+          </van-tab>
+        </van-tabs>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+import EbookItem from '@/components/ebookItem'
+export default class EbookChapterList extends wepy.page {
+  config = {
+    navigationBarTitleText: '电子课本',
+    usingComponents: {
+      'van-tab': '../vant-weapp/tab/index',
+      'van-tabs': '../vant-weapp/tabs/index'
+    }
+  }
+  components = {
+    topNav: topNav,
+    Item1: EbookItem,
+    Item2: EbookItem
+  }
+  data = {
+    itemType: 1,
+    height: 0
+  }
+  methods = {
+    // 切换选项卡
+    tabChange (event) {
+      this.itemType = parseInt(event.detail.index) + 1
+      this.$invoke('Item' + this.itemType, 'getBookId')
+      this.$apply()
+    }
+  }
+  onLoad () {
+    this.height = this.$parent.globalData.winHeight
+    this.$apply()
+  }
+  onShow() {
+    this.$invoke('Item' + this.itemType, 'getBookId')
+  }
+  onReady () {}
+}
+</script>
+<style lang="less">
+  .nav-tab{
+    .van-tabs__line{
+      background-image: linear-gradient(to right, #FFC662, #FF7A26)
+    }
+  }
+</style>

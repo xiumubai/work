@@ -1,0 +1,27 @@
+<template>
+  <view class="container">
+    <topNav title="电子课本" isShowBack="true"></topNav>
+    <view class="main-content"></view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+export default class Demo extends wepy.page {
+  config = {
+    navigationBarTitleText: '多得课堂',
+    usingComponents: {}
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {}
+  methods = {}
+  onLoad () {}
+  onShow () {}
+  onReady () {}
+}
+</script>
+<style lang="less">
+
+</style>

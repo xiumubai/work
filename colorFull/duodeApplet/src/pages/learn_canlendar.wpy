@@ -1,0 +1,606 @@
+<template>
+  <view class="container">
+    <topNav title="学习日历" isShowBack="true"></topNav>
+    <view class="main-content">
+      <view class="canlendar-container">
+        <calendar
+          circle_show="{{calendarData.circle_show}}"
+          isTodaybtn="{{calendarData.isTodaybtn}}"
+          todaybtn_txt="{{calendarData.todaybtn_txt}}"
+          speciallist="{{speciallist}}"
+          todaybtn-style="todaybtn-style"
+          active-colort="active-colort"
+          active-coloro="active-coloro"
+          datefont-style="datefont-style"
+          bindselectDate="selectDate"
+          bindgotoday="bindgotoday"
+        />
+      </view>
+      <view class="task-number br5">
+        <view class="top">
+          <view class="task-item">
+            <view class="num">{{logsList.statistics.todayFinishedNumber}}<text>个</text></view>
+            <view class="text">今日完成任务</view>
+          </view>
+          <view class="task-item">
+            <view class="num">{{logsList.statistics.totalLearningDays}}<text>天</text></view>
+            <view class="text">累计打卡</view>
+          </view>
+          <view class="task-item">
+            <view class="num">{{logsList.statistics.totalFinishedNumber}}<text>个</text></view>
+            <view class="text">累计完成学习</view>
+          </view>
+        </view>
+        <view class="bottom">
+          <button class="btn-nostyle btn-daka" bindtap="bindShow">学习打卡</button>
+        </view>
+      </view>
+      <view class="record-text">今日学习记录</view>
+      <view class="record-container br5">
+        <repeat for="{{[3, 1, 2]}}" item="item" key="key" index="index">
+          <view class="record-item">
+            <view class="title" wx:if="{{item === 1}}">语文</view>
+            <view class="title" wx:if="{{item === 2}}">数学</view>
+            <view class="title" wx:if="{{item === 3}}">英语</view>
+            <view class="ul" wx:if="{{logsList.logs[item].length > 0}}">
+              <repeat for="{{logsList.logs[item]}}" item="entry" index="index" key="key">
+                <view class="li">
+                  <view class="left">
+                    <view class="sub-title">{{entry.scene_name}} {{entry.chapter.name}} {{entry.node.name}}</view>
+                    <view class="rate" wx:if="{{entry.score_total > 0}}">共{{entry.score_total}}星，获得{{entry.score_gain}}星</view>
+                  </view>
+                  <view class="right {{entry.score_level === 1 ? 'boruo' : entry.score_level === 2 ? 'jige' : 'youxiu'}}" wx:if="{{entry.score_total > 0}}">{{entry.score_level_text}}</view>
+                </view>
+              </repeat>
+            </view>
+            <view class="ul nodata" wx:else>
+              <view class="li">
+                <view class="text" wx:if="{{item === 1}}" bindtap="bindLink(1)">暂无学习记录，去学习</view>
+                <view class="text" wx:if="{{item === 2}}" bindtap="bindLink(2)">暂无学习记录，去学习</view>
+                <view class="text" wx:if="{{item === 3}}" bindtap="bindLink(0)">暂无学习记录，去学习</view>
+                <view class="icon-right"></view>
+              </view>
+            </view>
+          </view>
+        </repeat>
+      </view>
+    </view>
+    <canvas canvas-id="card-image-canvas" class='card-canvas'/>
+    <van-popup
+      show="{{ show }}"
+      bind:close="bindClose">
+      <view>
+        <view class="preview">
+          <image src="{{imgPath}}" mode="widthFix"/>
+        </view>
+        <veiw class="footer-btn">
+          <view class="share-text">
+            <view class="border"></view>
+            <view class="text">分享</view>
+            <view class="border"></view>
+          </view>
+          <view class="share-btn">
+            <button class="btn-nostyle" open-type="share">
+              <view class="img"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/share.png"/></view>
+              <veiw class="text">分享好友</veiw>
+            </button>
+            <button class="btn-nostyle" bindtap="downLoadImage">
+              <view class="img"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/xiazai.png"/></view>
+              <veiw class="text">保存本地</veiw>
+            </button>
+          </view>
+        </veiw>
+      </view>
+    </van-popup>
+    <van-popup
+      show="{{showConfirm}}"
+      bind:close="bindCloseConfirm">
+      <view class="confirm-box">
+        <view class="img">
+          <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/bi.png"/>
+        </view>
+        <veiw class="title">再接再厉</veiw>
+        <view class="sub-title">已完成练习,快来打卡吧</view>
+      </view>
+      <veiw class="close-btn" bindtap="bindCloseConfirm"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/icon_close.png"/></veiw>
+    </van-popup>
+    <van-toast id="van-toast"/>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+import api from '@/api/api'
+import request from '@/utils/request'
+import Toast from '../vant-weapp/toast/toast'
+export default class LearnCanlendar extends wepy.page {
+  config = {
+    navigationBarTitleText: '学习日历',
+    usingComponents: {
+      'calendar': 'plugin://calendar/calendar',
+      'van-popup': '../vant-weapp/popup/index',
+      'van-toast': '../vant-weapp/toast/index'
+    }
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    imgPath: '',
+    day: '',
+    rotate: 2,
+    show: false,
+    showConfirm: false,
+    backHome: false,
+    userImgurl: '',
+    speciallist: [],
+    logsList: {},
+    calendarData: {
+      circle_show: false,
+      isTodaybtn: true,
+      todaybtn_txt: '今天'
+    }
+  }
+  async onLoad (options) {
+    if (options.backHome) {
+      this.backHome = options.backHome
+      this.showConfirm = true
+      this.$apply()
+    }
+    let res = await request.getCurrentUser()
+    if (res.statusCode === 200) {
+      this.userImgurl = res.data.data.user.avatar
+      this.$apply()
+    }
+    this.drawcardImageReady()
+    this.fetchCalendar()
+    this.fetchCalendarDailyLogs()
+  }
+  onShow () {
+  }
+  onReady () {}
+  onUnload () {
+  }
+  methods = {
+    selectDate (e) {
+      this.day = e.detail.date
+      this.$apply()
+      this.fetchCalendarDailyLogs()
+    },
+    bindgotoday (e) {
+      this.day = e.detail.date
+      this.$apply()
+      this.fetchCalendarDailyLogs()
+    },
+    bindShow () {
+      this.drawcardImage()
+    },
+    bindClose () {
+      this.show = false
+    },
+    bindCloseConfirm () {
+      this.showConfirm = false
+      this.$apply()
+    },
+    bindLink (type) {
+      wx.reLaunch({
+        url: '/pages/index?type=' + type
+      })
+    }
+  }
+  async fetchCalendar () {
+    let res = await request.authRequest({
+      url: api.learningCalendar,
+      data: {
+        formId: ''
+      }
+    }, false)
+    if (res.statusCode === 200) {
+      let data = res.data.data
+      data.map(v => {
+        let obj = {
+          date: v,
+          background: '#59D676',
+          color: '#fff'
+        }
+        this.speciallist.push(obj)
+      })
+      this.$apply()
+    }
+  }
+  async fetchCalendarDailyLogs () {
+    let res = await request.authRequest({
+      url: api.dailyLearningLogs,
+      data: {
+        day: this.day,
+        formId: ''
+      }
+    }, false)
+    if (res.statusCode === 200) {
+      let data = res.data.data
+      this.logsList = data
+      this.$apply()
+    }
+  }
+  async fetchCalendarShare () {
+    let res = await request.authRequest({
+      url: api.learningCalendarShare,
+      method: 'POST',
+      data: {
+        formId: ''
+      }
+    }, false)
+    if (res.statusCode === 200) {
+      // 分享成功
+    }
+  }
+  drawcardImage () {
+    wx.showLoading({title: '图片生成中'})
+    const canvas = wx.createCanvasContext('card-image-canvas')
+    canvas.fillRect(255, 255, 255, 0)
+    this.drawImageFn(canvas)
+    this.drawTextFn(canvas)
+    // 绘画完毕
+    this.showExcardImage(canvas)
+  }
+  drawTextFn (canvas) {
+    this.drawCardText(canvas, 12, '#6D4312', '坚持，可以成为任何想要成为的人', 81, 55)
+    this.drawCardText(canvas, 18, '#333', '我和孩子一起学习', 85, 215)
+    this.drawCardText(canvas, 12, '#999', '今日完成任务', 29, 255)
+    this.drawCardText(canvas, 12, '#999', '累计打卡', 132, 255)
+    this.drawCardText(canvas, 12, '#999', '累计完成任务', 214, 255)
+    this.drawCardText(canvas, 18, '#333', this.logsList.statistics.todayFinishedNumber, 53, 292)
+    this.drawCardText(canvas, 18, '#333', this.logsList.statistics.totalLearningDays, 140, 292)
+    this.drawCardText(canvas, 18, '#333', this.logsList.statistics.totalFinishedNumber, 235, 292)
+    this.drawCardText(canvas, 12, '#333', '个', 70, 292)
+    this.drawCardText(canvas, 12, '#333', '天', 164, 292)
+    this.drawCardText(canvas, 12, '#333', '个', 255, 292)
+    this.drawCardText(canvas, 12, '#fff', '长按二维码', 15, 360)
+    this.drawCardText(canvas, 16, '#fff', '和孩子一起学习', 15, 391)
+  }
+  // 绘制图片
+  drawImageFn(canvas) {
+    const bgImage = this.getImageInfo('card-bg')
+    const userImage = this.getImageInfo('user-img')
+    const qrcodeImage = this.getImageInfo('qrcode')
+    canvas.drawImage(bgImage.path, 0, 0, bgImage.width * this.rotate, bgImage.height * this.rotate)
+    this.drawCircleAvatar(canvas, userImage.path, 55 * this.rotate, 129 * this.rotate, 125 * this.rotate)
+    canvas.drawImage(qrcodeImage.path, 235 * this.rotate, 337 * this.rotate, 65 * this.rotate, 65 * this.rotate)
+  }
+  // 绘制户头像（圆）
+  drawCircleAvatar (canvas, avatar, diameter, dx, dy) {
+    let r = diameter / 2
+    canvas.save()
+    canvas.beginPath()
+    canvas.arc(dx + r, dy + r, r, 0, 2 * Math.PI, false)
+    canvas.clip()
+    canvas.drawImage(avatar, dx, dy, diameter, diameter)
+    canvas.restore()
+  }
+  // 绘制文字
+  drawCardText (canvas, fontsize, color, text, dx, dy) {
+    canvas.setFontSize(fontsize * this.rotate)
+    canvas.fillStyle = color
+    canvas.fillText(text, dx * this.rotate, dy * this.rotate)
+  }
+  // 加载图片资源
+  drawcardImageReady () {
+    this.setImageInfo('card-bg', 'https://color-full-wechat.oss-cn-hangzhou.aliyuncs.com/static/default/canlendar/card.jpg')
+    this.setImageInfo('user-img', this.userImgurl)
+    this.setImageInfo('qrcode', 'https://color-full-wechat.oss-cn-hangzhou.aliyuncs.com/static/default/excards/qr-code.jpg')
+  }
+  setImageInfo (key, imgUrl) {
+    wx.getImageInfo({
+      src: imgUrl,
+      success: function (res) {
+        wx.setStorageSync(key, res)
+      }
+    })
+  }
+  getImageInfo (key) {
+    return wx.getStorageSync(key)
+  }
+  // canvas转化成图片
+  showExcardImage (canvas) {
+    let that = this
+    canvas.draw(true, function () {
+      wx.canvasToTempFilePath({
+        canvasId: 'card-image-canvas',
+        success: function (res) {
+          that.imgPath = res.tempFilePath
+          that.show = true
+          that.$apply()
+          wx.hideLoading()
+        }
+      })
+    })
+  }
+  // 保存图片到本地
+  downLoadImage () {
+    var that = this
+    this.fetchCalendarShare()
+    wx.saveImageToPhotosAlbum({
+      filePath: that.imgPath,
+      success(res) {
+        Toast('保存成功，快去朋友圈分享吧~')
+        that.show = false
+        that.$apply()
+      }
+    })
+  }
+  onShareAppMessage (e) {
+    let title = '我和孩子一起学习'
+    if (e.from === 'button') {
+      return {
+        title: title,
+        path: '/pages/learn_calendar?backHome=true',
+        imageUrl: this.imgPath
+      }
+    } else if (e.from === 'menu') {
+      return {
+        title: title,
+        path: '/pages/learn_calendar?backHome=true'
+      }
+    }
+    this.fetchCalendarShare()
+  }
+}
+</script>
+<style lang="less">
+  .main-content{
+    .canlendar-container{
+      background: #fff;
+      .todaybtn-style{
+        width: 100px;
+      }
+      .datefont-style{
+        line-height: 25px!important;
+      }
+      .active-colort{
+        color: #fff!important;
+        background: #FA6400!important;
+      }
+      .active-coloro {
+        color: #fff!important;
+        background: #FA6400!important;
+      }
+    }
+    .task-number{
+      margin: 15px;
+      padding: 15px;
+      margin-bottom: 0;
+      background: #fff;
+      .bottom{
+        display: flex;
+        justify-content: center;
+        .btn-daka{
+          width: 100px;
+          height: 40px;
+          color: #fff;
+          line-height: 40px;
+          text-align: center;
+          font-weight: 'Semibold';
+          font-size: 16px;
+          background-image: url('http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/daka.png');
+          background-repeat: no-repeat;
+          background-size: contain;
+        }
+      }
+      .top{
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 15px;
+        .task-item{
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          flex-direction: column;
+          .num{
+            font-size: 18px;
+            margin-bottom: 10px;
+            text{
+              font-size: 12px;
+            }
+          }
+          .text{
+            font-size: 12px;
+            color: #999;
+          }
+        }
+      }
+    }
+    .record-text{
+      font-size: 12px;
+      color: #999;
+      text-align: center;
+      line-height: 47px;
+    }
+    .record-container{
+      margin: 0 15px;
+      margin-bottom: 80rpx;
+      padding: 15px;
+      background: #fff;
+      .record-item{
+        .title{
+          margin:10px 0;
+        }
+        .ul{
+          padding: 10px;
+          background: #F5F8FB;
+          border-radius: 5px;
+          .li{
+            display: flex;
+            justify-items: center;
+            border-bottom: 1px solid #F0F0F0;
+            &.li:last-child{
+              border-bottom: none;
+            }
+            .left{
+              flex: 1;
+              padding: 10px;
+              .sub-title{
+                font-size: 14px;
+                margin-bottom: 7px;
+              }
+              .rate{
+                font-size: 12px;
+                color: #999;
+              }
+            }
+            .right{
+              font-size: 12px;
+              display: flex;
+              align-items: center;
+              &.boruo{
+                color: #E02020;
+              }
+              &.jige{
+                color: #6DD400;
+              }
+              &.youxiu{
+                color: #FA6400;
+              }
+            }
+          }
+        }
+        .nodata{
+          .li{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40rpx 0;
+            .text{
+              font-size: 12px;
+              color: #999;
+              margin-right: 5px;
+            }
+            .icon-right{
+              width: 10rpx;
+              height: 17rpx;
+            }
+          }
+        }
+      }
+    }
+    .footer{
+      margin: 15px;
+      padding: 15px;
+      margin-top: 0;
+      background: #fff;
+      display: flex;
+      justify-content: space-around;
+      .btn-nostyle{
+        width: 84px;
+        height: 40px;
+        color: #fff;
+        line-height: 40px;
+        text-align: center;
+        font-weight: 'Semibold';
+        font-size: 16px;
+        background-repeat: no-repeat;
+        background-size: contain;
+      }
+      .yingyu{
+        background-image: url('http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/yingyu.png');
+      }
+      .yuwen{
+        background-image: url('http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/yuwen.png');
+      }
+      .shuxue{
+        background-image: url('http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/learn-canlendar/shuxue.png');
+      }
+    }
+  }
+  .van-popup {
+    border-radius: 5px;
+    background:rgba(0,0,0,0)!important;
+  }
+  .card-canvas{
+    position: fixed;
+    top: -99999px;
+    width: 630px;
+    height: 858px;
+  }
+  .preview{
+    width: 630rpx;
+    height: 858rpx;
+    margin-top: 64px;
+    image{
+      border-radius: 15px;
+    }
+  }
+  .footer-btn{
+    .share-text{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0;
+      .border{
+        width: 51px;
+        height: 1px;
+        background: #fff;
+      }
+      .text{
+        font-size: 12px;
+        color: #FFF;
+        margin: 0 15px;
+      }
+    }
+    .share-btn{
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      .btn-nostyle{
+        background:rgba(0,0,0,0)!important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        .img{
+          width: 27px;
+          height: 27px;
+          margin-bottom: 8px;
+        }
+        .text{
+          color: #fff;
+          font-size: 12px;
+        }
+      }
+    }
+  }
+  .confirm-box{
+    width: 560rpx;
+    height: 600rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border-radius: 20rpx;
+    box-sizing: border-box;
+    .img{
+      width: 97px;
+      height: 104px;
+    }
+    .title{
+      font-size: 24px;
+      font-weight: 500;
+      margin-bottom: 34rpx;
+    }
+    .sub-title{
+      font-size: 16px;
+      color: #666;
+    }
+  }
+  .close-btn{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 60rpx;
+    image{
+      width: 60rpx;
+      height: 60rpx;
+    }
+  }
+
+</style>

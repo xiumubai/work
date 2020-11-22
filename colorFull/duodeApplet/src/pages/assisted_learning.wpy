@@ -1,0 +1,387 @@
+<template>
+  <view class="container">
+    <topNav title="辅学"></topNav>
+    <view class="main-container">
+      <scroll-view scroll-y style="height: {{height}}px;">
+        <view class="learning-toos">
+          <view class="title-container">
+            <view class="border-right"></view>
+            <view class="text">
+              学习计划
+            </view>
+          </view>
+          <view class="rili">
+            <scroll-view scroll-x class="swiper-container" scroll-left="{{scrollLeft}}" scroll-with-animation='true'>
+              <repeat for="{{plantaskList}}" key="index">
+                <view class="item-swiper" @tap="changeItem" data-index="{{index}}">
+                  <view class="item" wx:if="{{currentIndex === index}}">
+                    <view class="fz30">{{item.showDate}}</view>
+                    <view class="fz24">{{item.date}}</view>
+                  </view>
+                  <view class="item" wx:else>
+                    <view class="fz30 c999">{{item.showDate}}</view>
+                    <view class="fz24 c999">{{item.date}}</view>
+                  </view>
+                  <view class="border {{currentIndex === index ? 'border-active' : ''}}"></view>
+                </view>
+              </repeat>
+            </scroll-view>
+          </view>
+          <view class="course-nodata" wx:if="{{nodata}}">
+            <form report-submit="true" bindsubmit="formSubmit">
+              <button class="btn" @tap="linkToLearningPlan" form-type="submit">开始学习</button>
+            </form>
+            <view class="c999 fz24">暂无预约课程</view>
+          </view>
+          <view class="course-hasdata" wx:else>
+            <repeat for="{{plans}}" key="index">
+              <view class="item-plan">
+                <view class="time top">
+                  <view>{{item.date}}</view>
+                  <view style="margin: 0 10rpx;">{{item.showDate}}</view>
+                  <view>{{item.time}}</view>
+                </view>
+                <view class="bottom flex" data-id="{{item.relateId}}" @tap="linkToCourseDetail">
+                  <view class="left">
+                    <view class="fz32 title">{{item.content}}</view>
+                    <view class="jigou">
+                      <view class="avatar bg-f3">
+                        <image src="{{item.orgLogo}}"/>
+                      </view>
+                      <view class="fz24">{{item.orgName}}</view>
+                    </view>
+                  </view>
+                  <view class="icon-right"></view>
+                </view>
+              </view>
+            </repeat>
+            <!-- 自定义计划 -->
+            <!-- <view class="item-plan">
+              <view class="time top">
+                <view>06.09</view>
+                <view style="margin: 0 10rpx;">今天</view>
+                <view>19:00</view>
+                <view class="c999" style="margin-left: 10rpx;" @tap="linkToCourseRecordEdit">修改</view>
+              </view>
+              <view class="bottom flex">
+                <view class="fz32 title" style="margin-bottom: 0">锻炼孩子数学思维，提升数学思考能力</view>
+                <view class="icon-right"></view>
+              </view>
+            </view> -->
+            <button class="btn" @tap="linkToLearningPlan">添加计划</button>
+          </view>
+          <view class="card-container">
+            <view class="card-item item1" data-id="{{cateList[0].id}}" @tap="linkToCourseList">
+              <view class="cfff fz44">轻松学习古诗文</view>
+              <view class="cfff fz28 subtitle">学习传统文化，提升人文素养</view>
+              <view class="btn-container flex">
+                <image class="img" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_shipin.png"/>
+                <view class="text">免费试学</view>
+              </view>
+              <view class="banner-img">
+                <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/img1.png" mode="aspectFit"/>
+              </view>
+            </view>
+            <view class="card-item item3" data-id="{{cateList[1].id}}" @tap="linkToCourseList">
+              <view class="cfff fz44">轻松学英语</view>
+              <view class="cfff fz28 subtitle">提高孩子听书读写能力</view>
+              <view class="btn-container flex">
+                <image class="img" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_shipin3.png"/>
+                <view class="text">免费试学</view>
+              </view>
+              <view class="banner-img">
+                <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/img3.png" mode="aspectFit"/>
+              </view>
+            </view>
+            <view class="card-item item2" data-id="{{cateList[2].id}}" @tap="linkToCourseList">
+              <view class="cfff fz44">数学思维学习</view>
+              <view class="cfff fz28 subtitle">溯源教学，锻造真正的数学高手</view>
+              <view class="btn-container flex">
+                <image class="img" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_shipin2.png"/>
+                <view class="text">免费试学</view>
+              </view>
+              <view class="banner-img">
+                <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/img2.png" mode="aspectFit"/>
+              </view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import utils from '@/utils/utils'
+import topNav from '@/components/topNav'
+import request from '@/utils/request'
+import api from '@/api/api'
+export default class AssistedLearning extends wepy.page {
+  config = {
+    navigationBarTitleText: '辅学工具'
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    currentIndex: 0,
+    dateList: [],
+    scrollLeft: 0,
+    nodata: false,
+    height: 0,
+    plantaskList: [],
+    plans: [],
+    cateList: []
+  }
+  methods = {
+    changeItem (e) {
+      let index = e.currentTarget.dataset.index
+      if (index !== this.currentIndex) {
+        this.currentIndex = index
+      }
+      let planList = this.plantaskList
+      for (var i = 0; i < planList.length; i++) {
+        if (i === index) {
+          this.plans = planList[i].plans
+        }
+      }
+      if (this.plans.length === 0) {
+        this.nodata = true
+      } else {
+        this.nodata = false
+      }
+      this.$apply()
+    },
+    linkToCourseDetail(e) {
+      let id = e.currentTarget.dataset.id
+      wx.navigateTo({
+        url: '/pages/course_detail?id=' + id
+      })
+    },
+    linkToCourseList (e) {
+      // 跳转到课程列表
+      let id = e.currentTarget.dataset.id
+      wx.navigateTo({
+        url: '/pages/course_list?id=' + id
+      })
+    },
+    linkToCourseRecordEdit () {
+      wx.navigateTo({
+        url: '/pages/courseRecordEdit'
+      })
+    },
+    linkToLearningPlan() {
+      wepy.navigateTo({
+        url: '/pages/learning_plan_list'
+      })
+    },
+    formSubmit (e) {
+      wepy.setStorageSync('formId', e.detail.formId)
+    }
+  }
+  async onLoad () {
+    // 获取scroll-view的高度
+    this.height = this.$parent.globalData.height
+
+    // 学习计划
+    let plantasksResponse = await request.authRequest({
+      url: api.plantasks,
+      data: {
+        type: 2
+      }
+    })
+    if (plantasksResponse.statusCode === 200) {
+      this.plantaskList = plantasksResponse.data.data
+      this.$apply()
+      // 获取当前时间前后15天的时间
+      let time = utils.formatDate(new Date())
+      let currentDay = utils.getCurrentDate(new Date())
+      let date = utils.getDates(15, time)
+      for (var i = 0; i < date.length; i++) {
+        if (date[i].time === currentDay) {
+          this.currentIndex = i
+          this.scrollLeft = 58 * i
+          this.plans = this.plantaskList[i].plans
+          this.$apply()
+        }
+      }
+      if (this.plans.length === 0) {
+        this.nodata = true
+        this.$apply()
+      } else {
+        this.nodata = false
+        this.$apply()
+      }
+    }
+
+    // 课程分类
+    let cateResponse = await request.authRequest(api.coursecates)
+    if (cateResponse.statusCode === 200) {
+      this.cateList = cateResponse.data.data
+      this.$apply()
+    }
+  }
+}
+</script>
+
+<style lang="less">
+  page{
+    background: #f5f5f5;
+  }
+  .learning-toos{
+    .card-container{
+      padding: 0 30rpx;
+      padding-top: 20rpx;
+      .card-item{
+        position: relative;
+        margin-bottom: 20rpx;
+        height: 278rpx;
+        border-radius: 16rpx;
+        padding: 0 40rpx;
+        padding-top: 20rpx;
+        .subtitle{
+          margin: 16rpx 0 36rpx 0;
+        }
+        .btn-container{
+          width: 220rpx;
+          height: 66rpx;
+          background: #ffffff;
+          border-radius: 34rpx;
+          justify-content: center;
+          .img{
+            width: 36rpx;
+            height: 30rpx;
+            margin-right: 20rpx;
+          }
+        }
+        .banner-img{
+          position: absolute;
+          right: 20rpx;
+          top: 20rpx;
+          width: 242rpx;
+          height: 242rpx
+        }
+      }
+      .item1{
+        background: -webkit-linear-gradient(left, #FA486C 0%,#FD7267 100%);
+        .text{
+          color: #FF5252;
+          font-size: 28rpx;
+        }
+      }
+      .item2{
+        background: -webkit-linear-gradient(left, #38A7FF 0%,#3BB7E9 100%);
+        .text{
+          color: #39A8FF;
+          font-size: 28rpx;
+        }
+      }
+      .item3{
+        background: -webkit-linear-gradient(left, #6392FF 0%,#92B3FF 100%);
+        .text{
+          color: #7398EE;
+          font-size: 28rpx;
+        }
+      }
+
+    }
+    .title-container{
+      background: #ffffff;
+      padding: 40rpx 30rpx;
+    }
+    .rili{
+      background: #ffffff;
+      margin-bottom: 20rpx;
+      .swiper-container{
+        display: flex;
+        // height: 100rpx;
+        white-space: nowrap;
+        .item-swiper{
+          display: inline-block;
+          margin-left: 68rpx; 
+          .item{
+            text-align: center;
+          }
+          .border{
+            margin-top: 20rpx;
+            height: 6rpx;
+            width: 0;
+            background: #333333;
+          }
+          .border-active{
+            transition: all 0.3s;
+            width: 100%;
+            border-radius: 4rpx;
+            height: 6rpx;
+            background: #333333;
+          }
+        }
+        .item-swiper:last-child{
+          margin-right: 68rpx;
+        }
+      }
+    }
+    .course-nodata{
+      text-align: center;
+      .btn{
+        width: 242rpx;
+        height: 62rpx;
+        margin-bottom: 10rpx;
+        line-height: 62rpx;
+        background: #4CB0FF;
+        border-radius: 54rpx;
+        color: #ffffff;
+        font-size: 32rpx;
+        box-shadow: 0 4rpx #006EC6; 
+      }
+    }
+    .course-hasdata{
+      padding: 0 30rpx;
+      .item-plan{
+        background: #ffffff;
+        border-radius: 8rpx;
+        margin-bottom: 20rpx;
+        .time{
+          padding: 20rpx;
+          display: flex;
+          border-bottom: 1rpx solid #F3F3F3;
+          view{
+            font-size: 28rpx;
+          }
+        }
+        .bottom{
+          padding: 20rpx;
+          .title{
+            margin-bottom: 40rpx;
+          }
+          .jigou{
+            display: flex;
+            align-items: center;
+            .avatar{
+              width: 40rpx;
+              height: 40rpx;
+              margin-right: 10rpx;
+              border-radius: 50%;
+              image{
+                border-radius: 50%;
+              }
+            }
+          }
+        }
+      }
+      .btn{
+        width: 242rpx;
+        height: 62rpx;
+        margin-top: 60rpx;
+        margin-bottom: 60rpx;
+        line-height: 62rpx;
+        background: #4CB0FF;
+        border-radius: 54rpx;
+        color: #ffffff;
+        font-size: 32rpx;
+        box-shadow: 0 4rpx #006EC6; 
+      }
+    }
+  }
+</style>

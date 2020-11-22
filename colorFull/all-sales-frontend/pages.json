@@ -1,0 +1,169 @@
+{
+	"pages": [
+		{
+			"path": "pages/tabBar/index/index",
+			"style": {
+				"navigationBarTitleText": "全员营销",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path": "pages/tabBar/task/task",
+			"style": {
+				"navigationBarTitleText": "全员营销",
+				"disableScroll": true,
+				"app-plus": {
+					"bounce": "none",
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path": "pages/tabBar/goods/goods",
+			"style": {
+				"navigationBarTitleText": "全员营销",
+				"disableScroll": true,
+				"app-plus": {
+					"bounce": "none",
+					"titleNView":false
+				}
+			}
+		},
+		{
+			"path": "pages/tabBar/info/info",
+			"style": {
+				"navigationBarTitleText": "全员营销",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path": "pages/auth/auth",
+			"style": {
+				"navigationBarTitleText": "授权",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path": "pages/task/recive/recive",
+			"style": {
+				"navigationBarTitleText": "全员营销",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path": "pages/goods/exchange/exchange",
+			"style": {
+				"navigationBarTitleText": "全员营销",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path": "pages/info/accepted/accepted",
+			"style": {
+				"navigationBarTitleText": "全员营销",
+				"disableScroll": true,
+				"app-plus": {
+					"bounce": "none",
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path": "pages/info/address/address",
+			"style": {
+				"navigationBarTitleText": "全员营销",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path": "pages/info/add-address/add-address",
+			"style": {
+				"navigationBarTitleText": "全员营销",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path": "pages/info/record/record",
+			"style": {
+				"navigationBarTitleText": "全员营销",
+				"disableScroll": true,
+				"app-plus": {
+					"bounce": "none",
+					"titleNView": false
+				}
+			}
+		},
+		{
+			"path": "pages/test/test",
+			"style": {
+				"navigationBarTitleText": "测试页面",
+				"app-plus": {
+					"titleNView": false
+				}
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "全员营销",
+		"navigationBarBackgroundColor": "#ECEDEE",
+		"backgroundColor": "#ECEDEE",
+		"app-plus": {
+			"titleNView": false
+		}
+	},
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#006A60",
+		"borderStyle": "black",
+		"backgroundColor": "#ffffff",
+		"list": [{
+				"pagePath": "pages/tabBar/index/index",
+				"iconPath": "static/tabBar/home@2x.png",
+				"selectedIconPath": "static/tabBar/home-active@2x.png",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/tabBar/task/task",
+				"iconPath": "static/tabBar/task@2x.png",
+				"selectedIconPath": "static/tabBar/task-active@2x.png",
+				"text": "任务"
+			},
+			{
+				"pagePath": "pages/tabBar/goods/goods",
+				"iconPath": "static/tabBar/goods@2x.png",
+				"selectedIconPath": "static/tabBar/goods-active@2x.png",
+				"text": "商城"
+			},
+			{
+				"pagePath": "pages/tabBar/info/info",
+				"iconPath": "static/tabBar/info@2x.png",
+				"selectedIconPath": "static/tabBar/info-active@2x.png",
+				"text": "我的"
+			}
+		]
+	}
+}

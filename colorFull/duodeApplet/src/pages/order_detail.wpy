@@ -1,0 +1,273 @@
+<template>
+  <view class="container">
+    <topNav title="订单详情" isShowBack="true"></topNav>
+    <view class="main-comtent order-detail">
+      <view class="goods-container">
+        <view class="top">
+          <view class="avatar left bg-f3">
+            <image src="{{courseDetail.faceUrl}}" mode="aspectFill"/>
+          </view>
+          <view class="right">
+            <view class="fz28">{{courseDetail.name}}</view>
+            <view class="tags">
+              <repeat for="{{courseDetail.tags}}" key="index" item="tag">
+                <view class="item">{{tag.name}}</view>
+              </repeat>
+            </view>
+            <view class="price">
+              <view class="disc">¥0.0</view>
+              <!-- <view class="fz24 c999">¥68.0/7课时</view> -->
+            </view>
+          </view>
+        </view>
+        <view class="tips" wx:if="{{courseDetail.isMaterial}}">
+          备注：包含实物赠品
+        </view>
+        <view class="border-1px"></view>
+        <view class="title">学习日期</view>
+        <view class="time flex">
+          <view class="fz28">{{startDate}}</view>
+          <view class="plan_bg">
+            计划
+          </view>
+          <view class="fz28">{{endDate}}</view>
+        </view>
+      </view>
+      <view wx:if="{{type === '2'}}" class="phone flex">
+        <view class="left fz28">联系电话</view>
+        <view class="right">
+          <!-- <button open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber">
+            获取手机号
+          </button> -->
+          <view class="c666 fz28">
+            <input value="{{mobile}}" type="number" bindblur="bindblurPhone" placeholder="请填写电话号码" placeholder-style="color: #333"/>
+          </view>
+          <view class="icon-right"></view>
+        </view>
+      </view>
+      <view class="footer">
+        <form report-submit="true" bindsubmit="formSubmit">
+          <view class="form-container">
+            <button class="footer-item btn-nostyle pay" wx:if="{{type === '2'}}">应付¥0.0</button>
+            <button class="footer-item btn-nostyle confirm {{type === '1' ? 'flex1' : ''}}"  wx:if="{{type === '1'}}" form-type="submit">立即确认</button>
+            <button class="footer-item btn-nostyle confirm"
+              wx:if="{{type === '2'}}"
+              form-type="submit"
+              open-type="contact"
+              session-from="{{sessionFrom}}"
+              send-message-title="多得课堂"
+              send-message-path="/pages/course_detail?id={{params.course_id}}"
+              send-message-img="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_lingqu.png"
+              show-message-card="true">立即确认</button>
+          </view>
+        </form>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+import request from '@/utils/request'
+import api from '@/api/api'
+export default class OrderDetail extends wepy.page {
+  config = {
+    navigationBarTitleText: '课程详情'
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    mobile: '',
+    params: null,
+    courseDetail: null,
+    sessionFrom: null,
+    endDate: '',
+    startDate: '',
+    type: 0
+  }
+  methods = {
+    async formSubmit (e) {
+      // 缓存formId
+      wepy.setStorageSync('formId', e.detail.formId)
+      let params = wepy.getStorageSync('plantaskParams')
+      params.mobile = this.params.mobile || ''
+      params.formId = e.detail.formId
+      let plantasksResponse = await request.authRequest({
+        url: api.plantasks,
+        data: params,
+        method: 'POST'
+      })
+      if (plantasksResponse.statusCode === 200) {
+        // 清除缓存
+        wepy.removeStorageSync('plantaskParams')
+        wepy.removeStorageSync('courseDetail')
+        wx.reLaunch({
+          url: '/pages/assisted_learning'
+        })
+      }
+    },
+    bindblurPhone (e) {
+      this.mobile = e.detail.value
+      this.params['mobile'] = this.mobile
+      this.$apply()
+    }
+  }
+  async onLoad (options) {
+    await request.getCurrentUser()
+    this.type = options.type
+    this.params = wepy.getStorageSync('plantaskParams')
+    this.courseDetail = wepy.getStorageSync('courseDetail')
+    let newParams = this.params
+    newParams.type = 3
+    let sessionFromObj = {
+      courseId: this.params.course_id,
+      path: '/pages/course_detail?id=' + this.params.course_id,
+      query: {
+        courseId: this.params.course_id
+      }
+    }
+    this.sessionFrom = JSON.stringify(sessionFromObj)
+    let plantasksResponse = await request.authRequest({
+      url: api.plantasks,
+      data: newParams,
+      method: 'POST'
+    })
+    if (plantasksResponse.statusCode === 200) {
+      this.startDate = plantasksResponse.data.data.startDate
+      this.endDate = plantasksResponse.data.data.endDate
+    }
+    this.$apply()
+  }
+  getPhoneNumber (e) {
+    console.log(e)
+  }
+}
+</script>
+<style lang="less">
+  page{
+    background: #f5f5f5;
+  }
+  .order-detail{
+    .goods-container{
+      background: #ffffff;
+      padding: 0 30rpx;
+      padding-top: 20rpx;
+      .top{
+        display: flex;
+        .avatar{
+          flex: 200rpx 0 0;
+          width: 200rpx;
+          height: 200rpx;
+          margin-right: 30rpx;
+          border-radius: 8rpx;
+          image{
+            border-radius: 8rpx;
+          }
+        }
+        .right{
+          flex: 1;
+          .tags{
+            display: flex;
+            margin-bottom: 26rpx;
+            margin-top: 20rpx;
+            .item-tag{
+              font-size: 20rpx;
+              color: #ffffff;
+              background: #CCCCCC;
+              border-radius: 8rpx;
+              width: 116rpx;
+              margin-right: 10rpx;
+              overflow: hidden;
+              white-space: nowrap;
+              text-overflow: ellipsis;
+              text-align: center;
+            }
+          }
+          .price{
+            display: flex;
+            align-items: center;
+            .disc{
+              font-size: 36rpx;
+              color: #FA6400;
+              margin-right: 12rpx;
+            }
+          }
+        }
+      }
+      .tips{
+        color: #E02020;
+        font-size: 24rpx;
+      }
+      .border-1px{
+        margin: 40rpx 0;
+      }
+      .title{
+        color: #61BAFF;
+        font-size: 28rpx;
+      }
+      .time{
+        padding: 20rpx 0;
+        .plan_bg{
+          flex: 1;
+          background-image: url('data:image/png;base64,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');
+          background-size: 100% 100%;
+          background-repeat: no-repeat; 
+          text-align: center;
+          color: #ffffff;
+          font-size: 24rpx;
+        }
+      }
+    }
+    .phone{
+      background: #ffffff;
+      margin-top: 10rpx;
+      padding: 20rpx 30rpx;
+      .right{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        input{
+          text-align: right;
+        }
+        .icon-right{
+          margin-left: 10rpx;
+        }
+      }
+    }
+    .footer{
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      height: 112rpx;
+      line-height: 112rpx;
+      width: 100%;
+      .form-container{
+        display: flex;
+        .footer-item{
+          font-size: 36rpx;
+          text-align: center;
+          border-radius: 0;
+          border: 0;
+          padding: 0;
+          margin: 0;
+          height: 112rpx;
+          line-height: 112rpx;
+        }
+        .pay{
+          flex: 1;
+          color: #FA6400;
+          background: #ffffff;
+        }
+        .confirm{
+          flex: 320rpx 0 0;
+          color: #ffffff;
+          background: #4CB0FF;
+        }
+        .flex1{
+          flex: 1;
+        }
+      }
+    }
+  }
+</style>

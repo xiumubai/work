@@ -1,0 +1,238 @@
+<template>
+  <view class="container">
+    <topNav title="儿歌" isShowBack="true"></topNav>
+    <view class="main-content">
+      <view class="discover-container bg-ff">
+        <view class="tabbar-container bg-ff">
+          <repeat for="{{nav}}" key="index">
+            <view class="nav-item">
+              <view class="nav-text {{currentData == index ? 'text-active' : ''}}" bindtap="bindClick" data-current="{{index}}">{{item}}</view>
+              <view class="nav-border {{currentData == index ? 'border-active' : ''}}"></view>
+            </view>
+          </repeat>
+        </view>
+        <view class="border-1px"></view>
+        <view class="tabbar-swiper bg-ff">
+          <swiper style="height: {{height}}px;" bindchange="bindchange" current="{{currentData}}" duration="300">
+            <swiper-item>
+              <scroll-view scroll-y style="height: {{height}}px;" bindscrolltolower="scrollToBottom">
+                <view class="look-container">
+                  <repeat for="{{courseList}}" key="index">
+                    <navigator url="../pages/course_detail?id={{item.id}}">
+                      <view class="item">
+                        <view class="left">
+                          <view class="avatar bg-f3">
+                            <image src="{{item.faceUrl}}"/>
+                          </view>
+                        </view>
+                        <view class="right">
+                          <view class="top">
+                            <view class="fz32 title">{{item.name}}</view>
+                            <view class="c666 fz24 sub-title">{{item.blurb}}</view>
+                          </view>
+                          <view class="bottom c666 fz12">
+                            共{{item.lessonNumber}}节
+                          </view>
+                        </view>
+                      </view>
+                    </navigator>
+                  </repeat>
+                </view>
+              </scroll-view>
+            </swiper-item>
+            <swiper-item>
+              <scroll-view scroll-y style="height: {{height}}px;" bindscrolltolower="scrollToBottom2">
+                <view class="look-container">
+                  <repeat for="{{courseList2}}" key="index">
+                    <navigator url="../pages/course_detail?id={{item.id}}">
+                      <view class="item">
+                        <view class="left">
+                          <view class="avatar bg-f3">
+                            <image src="{{item.faceUrl}}"/>
+                          </view>
+                        </view>
+                        <view class="right">
+                          <view class="top">
+                            <view class="fz32 title">{{item.name}}</view>
+                            <view class="c666 fz24 sub-title">{{item.blurb}}</view>
+                          </view>
+                          <view class="bottom c666 fz12">
+                            共{{item.lessonNumber}}节
+                          </view>
+                        </view>
+                      </view>
+                    </navigator>
+                  </repeat>
+                </view>
+              </scroll-view>
+            </swiper-item>
+          </swiper>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+
+import request from '@/utils/request'
+import api from '@/api/api'
+
+export default class ListenAndLook extends wepy.page {
+  config = {
+    navigationBarTitleText: '发现'
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    nav: ['看一看', '听一听'],
+    currentData: 0,
+    loading: false,
+    page: 1,
+    perPage: 10,
+    pages: 0,
+    courseList: [],
+    loading2: false,
+    page2: 1,
+    perPage2: 10,
+    pages2: 0,
+    courseList2: [],
+    height: 0,
+    id: ''
+  }
+  methods = {
+    bindClick (e) {
+      let current = e.target.dataset.current
+      if (this.currentData === current) {
+        return false
+      } else {
+        this.currentData = current
+        this.$apply()
+      }
+    },
+    bindchange (e) {
+      this.currentData = e.detail.current
+      this.$apply()
+    }
+  }
+  async onLoad(options) {
+    this.id = options.id
+    this.$apply()
+    let that = this
+    that.fetchList(1)
+    that.fetch2List(1)
+    // 动态计算scroll-view的高度
+    wx.getSystemInfo({
+      success: function(res) {
+        wx.createSelectorQuery().select('.tabbar-container').boundingClientRect(function (rect) {
+          let rectHeight = rect.height
+          let windowHeight = res.windowHeight
+          let headerHeight = wepy.getStorageSync('startBarHeight') + wepy.getStorageSync('navgationHeight')
+          that.height = windowHeight - rectHeight - headerHeight
+          that.$apply()
+        }).exec()
+      }
+    })
+  }
+  onReachBottom() {
+    // 下拉触底，先判断是否有请求正在进行中
+    // 以及检查当前请求页数是不是小于数据总页数，如符合条件，则发送请求
+    console.log('我到底部了')
+  }
+  // 滚动到底部
+  scrollToBottom() {
+    if (!this.loading && this.data.page < this.data.pages) {
+      this.fetchList(this.data.page + 1)
+    }
+  }
+  scrollToBottom2() {
+    if (!this.loading2 && this.data.page2 < this.data.pages2) {
+      this.fetch2List(this.data.page2 + 1)
+    }
+  }
+  async fetchList (page) {
+    this.loading = true
+    let listResponse = await request.authRequest({
+      url: api.coursesList + ',cate',
+      data: {
+        page: page,
+        perPage: this.perPage,
+        type: 1,
+        cate: this.id
+      }
+    })
+    if (listResponse.statusCode === 200) {
+      this.loading = false
+      this.page = page
+      this.pages = listResponse.data.data.pagination.totalPages
+      this.courseList = this.courseList.concat(listResponse.data.data.list)
+      this.$apply()
+    }
+  }
+  async fetch2List (page) {
+    this.loading = true
+    let listResponse = await request.authRequest({
+      url: api.coursesList + ',cate',
+      data: {
+        page: page,
+        perPage: this.perPage2,
+        type: 2,
+        cate: this.id
+      }
+    })
+    if (listResponse.statusCode === 200) {
+      this.loading2 = false
+      this.page2 = page
+      this.pages2 = listResponse.data.data.pagination.totalPages
+      this.courseList2 = this.courseList2.concat(listResponse.data.data.list)
+      this.$apply()
+    }
+  }
+}
+</script>
+<style lang="less">
+.discover-container{
+  .look-container{
+    padding: 0 40rpx;
+    .item{
+      display: flex;
+      padding: 20rpx 0;
+      border-bottom: 1rpx solid #F3F3F3;
+      .left{
+        flex: 220rpx 0 0;
+        margin-right: 20rpx;
+        .avatar{
+          width: 220rpx;
+          height: 164rpx;
+          border-radius: 8rpx;
+          image{
+            border-radius: 8rpx;
+          }
+        }
+      }
+      .right{
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        .top{
+          .title{
+            margin-bottom: 20rpx;
+            width: 428rpx;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+          }
+          .sub-title{
+            width: 428rpx;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+          }
+        }
+      }
+    }
+  }
+}
+</style>

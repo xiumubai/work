@@ -1,0 +1,358 @@
+<template>
+  <view class="container">
+    <topNav title="快速识字" isShowBack="true"></topNav>
+    <view class="main-content">
+      <view class="title-content" bindtap="bindLink" wx:if="{{noChange !== '0'}}">
+        <view class="text">{{pronunceList.bookNode.name}}</view>
+        <view class="rignt-content">
+          <view class="sub-title">切换</view>
+          <view class="icon-right"></view>
+        </view>
+      </view>
+      <view class="progress-container">
+        <view class="text">当前进度</view>
+        <view class="progress-bar"><progress percent="{{percent}}" border-radius="10" stroke-width="15" color="#FFC662" backgroundColor="#CCC" /></view>
+        <view class="progress-num">{{length + 1}}/{{pronunceList.list.length}}</view>
+      </view>
+      <view class="word-container">
+        <view class="word">
+          <view class="pinyin">{{pronunce.soundmark}}</view>
+          <view class="hanzi">{{pronunce.stem}}</view>
+        </view>
+        <veiw class="stroke">{{pronunce.stroke}}</veiw>
+        <view class="voice" bindtap="playAudio"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/icon_shengyin.png"/></view>
+      </view>
+      <view class="bushou-container">
+        <view class="title">部首：</view>
+        <view class="sub-title">{{pronunce.radical}}</view>
+        <view class="title">笔画：</view>
+        <view class="sub-title">{{pronunce.strokeCount}}</view>
+        <view class="title">结构：</view>
+        <view class="sub-title">{{pronunce.structure}}</view>
+      </view>
+      <view class="btn-container">
+        <view class="btn-box">
+          <view class="prev btn-c {{length !== 0 ? 'active' : ''}}" bindtap="bindPrev">上一个</view>
+          <view class="bd"></view>
+          <view class="next btn-c {{length !==  pronunceList.list.length - 1 ? 'active' : ''}}" bindtap="bindNext">下一个</view>
+        </view>
+      </view>
+      <view class="explain-container" wx:if="{{pronunce.meanings.length > 0}}">
+        <view class="h5">字意</view>
+        <view class="ul">
+          <repeat for="{{pronunce.meanings}}" item="item" index="index" kye="key">
+            <view class="li">
+            <view class="title">{{index + 1}}. {{item.meaning}}</view>
+            <view class="sub-title">{{item.words}}</view>
+          </view>
+          </repeat>
+        </view>
+      </view>
+    </view>
+    <van-toast id="van-toast" />
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+import api from '@/api/api'
+import request from '@/utils/request'
+import Toast from '../vant-weapp/toast/toast'
+const myaudio = wx.createInnerAudioContext()
+export default class LiteracyChinese extends wepy.page {
+  config = {
+    navigationBarTitleText: '快速识字',
+    usingComponents: {
+      'van-rate': '../vant-weapp/rate/index',
+      'van-toast': '../vant-weapp/toast/index'
+    }
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    voice: '',
+    nodeId: '',
+    length: 0,
+    percent: 0,
+    rate: 0,
+    pronunceList: {},
+    pronunce: {},
+    isPlay: false,
+    noChange: '1',
+    params: {
+      isFinished: 1,
+      question: []
+    }
+  }
+  async onLoad (options) {
+    this.nodeId = options.nodeId
+    this.noChange = options.noChange
+    this.$apply()
+    await this.fetchPronuncePractices()
+    myaudio.onEnded(() => {
+      this.isPlay = false
+      this.$apply()
+    })
+  }
+  onShow () {
+  }
+  onUnload () {
+    myaudio.stop()
+  }
+  methods = {
+    bindLink() {
+      myaudio.stop()
+      wx.navigateTo({
+        url: 'literacy_chapter_list?bookId=' + this.pronunceList.bookNode.bookId
+      })
+    },
+    bindPrev () {
+      if (this.length > 0) {
+        this.length -= 1
+        this.percent -= this.rate
+        this.pronunce = this.pronunceList.list[this.length]
+        this.$apply()
+        this.playAudio()
+      } else {
+        Toast('已经是第一个了~')
+      }
+    },
+    bindNext () {
+      if (this.length + 1 < this.pronunceList.list.length) {
+        this.rateShow = false
+        this.length += 1
+        this.percent += this.rate
+        this.pronunce = this.pronunceList.list[this.length]
+        this.$apply()
+        this.playAudio()
+        if (this.length === this.pronunceList.list.length - 1) {
+          this.submitAnswer()
+        }
+      } else {
+        Toast('已经是最后一个了~')
+      }
+    }
+  }
+  // 播放audio
+  playAudio () {
+    this.stopAudio()
+    if (!this.isPlay) {
+      myaudio.src = this.pronunce.stemAudio
+      myaudio.play()
+      this.isPlay = true
+      this.$apply()
+    }
+  }
+  // 暂停audio
+  stopAudio () {
+    myaudio.stop()
+    this.isPlay = false
+    this.$apply()
+  }
+
+  // 发音练习题列表
+  async fetchPronuncePractices () {
+    let res = await request.authRequest({
+      url: api.hanziPractices,
+      data: {
+        nodeId: this.nodeId
+      }
+    })
+    if (res.statusCode === 200) {
+      let data = res.data.data
+      this.pronunceList = data
+      this.pronunce = this.pronunceList.list[0]
+      this.rate = 100 / this.pronunceList.list.length
+      this.percent = this.rate
+      this.params.groupId = data.groupId
+      this.params.scene = data.scene
+      this.pronunceList.list.map(v => {
+        let options = {
+          id: v.id
+        }
+        this.params.question.push(options)
+      })
+      this.$apply()
+      this.playAudio()
+    }
+  }
+  async submitAnswer () {
+    let res = await request.authRequest({
+      url: api.pronounceAnswers,
+      method: 'POST',
+      data: this.params
+    })
+    if (res.statusCode === 200) {
+      console.log('练习结束')
+    }
+  }
+}
+</script>
+<style lang="less">
+.main-content{
+  padding: 0 15px;
+  .title-content{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    padding: 0 10px;
+    .text{
+      color: #333;
+      font-size: 16px;
+    }
+    .rignt-content{
+      display: flex;
+      align-items: center;
+      .sub-title{
+        color: #999;
+        font-size: 14px;
+        margin-right: 5px;
+      }
+    }
+  }
+  .progress-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top:10px;
+    .text{
+      font-size: 14px;
+      color: #999999;
+    }
+    .progress-bar{
+      flex: 155px 0 0;
+      margin: 0 10px;
+    }
+    .progress-num{
+      font-size: 14px;
+      color: #999999;
+    }
+  }
+  .word-container{
+    background: #fff;
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    padding: 0 15px;
+    box-sizing: border-box;
+    .word{
+      margin-bottom: 30px;
+      margin-top: 40px;
+      .pinyin{
+        text-align: center;
+        font-size: 20px;
+        color: #333;
+        height: 34px;
+        line-height: 30px;
+        background-image: url('http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/icon_pinyin.png');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+      }
+      .hanzi{
+        width: 120px;
+        height: 120px;
+        line-height: 120px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 72px;
+        color: #333;
+        background-image: url('http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/icon_tianzige.png');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+      }
+    }
+    .stroke{
+      margin-bottom: 20px;
+      font-size: 16px;
+      color: #333;
+    }
+    .voice{
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 39px;
+      height: 39px;
+    }
+  }
+  .bushou-container{
+    display: flex;
+    padding: 10px;
+    background: #fff;
+    margin-top: 22px;
+    border-radius: 5px;
+    .title{
+      font-size: 16px;
+      color: #999;
+    }
+    .sub-title{
+      color: #333;
+      margin-right: 20px;
+    }
+  }
+  .btn-container{
+    display: flex;
+    justify-content: center;
+    margin: 30px 0;
+    .btn-box{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 232px;
+      height: 42px;
+      background: #fff;
+      border-radius: 21px;
+      box-shadow: 0rpx 2rpx 12rpx 1rpx #FFBD5A;
+      .bd{
+        width: 1px;
+        height: 22px;
+        background: #FFC662;
+        margin: 0 46px;
+      }
+      .btn-c{
+        font-size: 16px;
+        color: #DDDDDD;
+        &.active{
+          color: #FFC662;
+        }
+      }
+    }
+  }
+  .explain-container{
+    background: #fff;
+    padding: 20px 10px;
+    border-radius: 5px;
+    margin-bottom: 76px;
+    .h5{
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .ul{
+      .li{
+        margin-bottom: 20px;
+        .title{
+          font-size: 16px;
+          color: #333;
+          margin-bottom: 10px;
+        }
+        .sub-title{
+          font-size: 14px;
+          color: #666;
+          margin-left: 16px;
+        }
+      }
+      .li:last-child{
+        margin-bottom: 0px;
+      }
+    }
+  }
+}
+</style>

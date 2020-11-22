@@ -1,0 +1,147 @@
+<!--
+ * @Description: In User Settings Edit
+ * @Author: your name
+ * @Date: 2019-08-07 09:48:48
+ * @LastEditTime: 2019-08-21 22:31:08
+ * @LastEditors: Please set LastEditors
+ -->
+<script>
+import wepy from 'wepy'
+import 'wepy-async-function'
+export default class extends wepy.app {
+  config = {
+    pages: [
+      'pages/index',
+      'pages/course_detail',
+      'pages/course_list',
+      'pages/order_detail',
+      'pages/course',
+      'pages/listen_and_look',
+      'pages/assisted_learning',
+      'pages/learning_plan_list',
+      'pages/info',
+      'pages/info_edit',
+      'pages/about_us',
+      'pages/learn_canlendar',
+      'pages/welcome',
+      'pages/follow_tags',
+      'pages/ebook',
+      'pages/book_list',
+      'pages/ebook_chapter_list',
+      'pages/dictation_english',
+      'pages/dictation_chinese',
+      'pages/dictation_chapter_list',
+      'pages/dictation_result',
+      'pages/pronounce_english',
+      'pages/pronounce_chapter_list',
+      'pages/literacy_chinese',
+      'pages/literacy_chapter_list',
+      'pages/practice',
+      'pages/practice_chapter_list',
+      'pages/dialog_practice'
+    ],
+    window: {
+      backgroundTextStyle: 'dark',
+      navigationBarBackgroundColor: '#FBB957',
+      navigationBarTitleText: 'WeChat',
+      navigationBarTextStyle: 'black',
+      enablePullDownRefresh: false,
+      backgroundColor: '#EFEFEF',
+      navigationStyle: 'custom'
+    },
+    'debug': false,
+    'tabBar': {
+      'color': '#909090',
+      'selectedColor': '#000000',
+      'backgroundColor': '#ffffff',
+      'borderStyle': 'black',
+      'list': [{
+        'pagePath': 'pages/index',
+        'text': '首页',
+        'iconPath': 'static/images/icon_home.png',
+        'selectedIconPath': 'static/images/icon_home_active.png'
+      }, {
+        'pagePath': 'pages/assisted_learning',
+        'text': '辅学',
+        'iconPath': 'static/images/icon_learningtoos.png',
+        'selectedIconPath': 'static/images/icon_learningtoos_active.png'
+      },
+      {
+        'pagePath': 'pages/course',
+        'text': '课程',
+        'iconPath': 'static/images/icon_course.png',
+        'selectedIconPath': 'static/images/icon_course_active.png'
+      }, {
+        'pagePath': 'pages/info',
+        'text': '我的',
+        'iconPath': 'static/images/icon_info.png',
+        'selectedIconPath': 'static/images/icon_info_active.png'
+      }]
+    },
+    'plugins': {
+      'calendar': {
+        'version': '1.2.1',
+        'provider': 'wx23a9cef3522e4f7c'
+      }
+    }
+  }
+
+  globalData = {
+    height: 0,
+    winHeight: 0,
+    startBarHeight: 0,
+    navgationHeight: 0,
+    isFollowedTag: false,
+    userInfo: null,
+    bookOptionsType: '',
+    bookOptionsParams: []
+  }
+
+  constructor () {
+    super()
+    this.use('requestfix')
+    this.use('promisify')
+  }
+  onLaunch () {
+    let that = this
+    /**
+     * 处理刘海屏头部高度问题
+     * startBarHeight: 状态栏的高度，单位px
+     * navgationHeight: 头部高度
+     * height: 内容区域高度
+    */
+    wx.getSystemInfo({
+      success(res) {
+        let startBarHeight = res.statusBarHeight
+        let navgationHeight = 44
+        let windowHeight = res.windowHeight
+
+        wepy.setStorageSync('startBarHeight', startBarHeight)
+        wepy.setStorageSync('navgationHeight', navgationHeight)
+        that.globalData.winHeight = windowHeight
+        that.globalData.startBarHeight = startBarHeight
+        that.globalData.navgationHeight = navgationHeight
+        that.globalData.height = windowHeight - startBarHeight - navgationHeight
+        that.globalData.isiOS = res.platform === 'ios' || /iOS/i.test(res.system)
+      }
+    })
+
+    if (this.globalData.bookOptionsParams.length === 0) {
+      let list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+      list.map((v, i) => {
+        let obj = {
+          type: i
+        }
+        this.globalData.bookOptionsParams.push(obj)
+      })
+    }
+  }
+  onShareAppMessage () {
+    // 分享
+  }
+}
+</script>
+<style lang="less">
+@import './static/css/base';
+@import './duode-ui/less/index.less';
+</style>

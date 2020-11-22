@@ -1,0 +1,118 @@
+<template>
+  <view class="item-course" bindtap="linkToCourseDetail" data-id="{{item.id}}">
+    <view class="left bg-f3">
+      <image wx:if="{{item.squareFaceUrl}}" src="{{item.squareFaceUrl}}" mode="aspectFill" />
+      <image wx:else src="{{item.faceUrl}}" mode="aspectFill"/>
+    </view>
+    <view class="right">
+      <view class="title fz28">{{item.name}}</view>
+      <view class="sub-title fz24 c999">{{item.blurb ? item.blurb : '极速提升思维能力复制'}}</view>
+      <view class="tags">
+        <repeat for="{{item.tags}}" key="index" item="tag">
+          <view wx:if="{{index < 2}}" class="item-tag">{{tag.name}}</view>
+        </repeat>
+        <view wx:if="{{item.cate.name}}" class="item-tag">{{item.cate.name}}</view>
+      </view>
+      <view class="price-container flex">
+        <view class="price" wx:if="{{isShowPrice}}">¥{{ item.price > 0 ? (item.price / 100) : 0 }}</view>
+        <view class="space"></view>
+        <form report-submit="true" bindsubmit="formSubmit">
+          <button class="btn btn-nostyle" form-type="submit" catchtap="linkToCourseDetail" data-id="{{item.id}}">立即试学</button>
+        </form>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+export default class CourseItem extends wepy.component {
+  props = {
+    item: {
+      type: Object,
+      value: null
+    },
+    isShowPrice: {
+      type: Boolean,
+      value: true
+    }
+  }
+  methods = {
+    linkToCourseDetail (e) {
+      let id = e.currentTarget.dataset.id
+      wx.navigateTo({
+        url: '/pages/course_detail?id=' + id
+      })
+    },
+    formSubmit (e) {
+      wepy.setStorageSync('formId', e.detail.formId)
+    }
+  }
+}
+</script>
+<style lang="less">
+  .item-course{
+    border-radius: 0rpx;
+    display: flex;
+    border: 1rpx solid #EEEEEE;
+    margin-bottom: 20rpx;
+    border-radius: 8rpx;
+    .left{
+      flex: 290rpx 0 0;
+      height: 290rpx;
+      border: 8rpx 0 0 8rpx;
+      image{
+        border: 8rpx 0 0 8rpx;
+      }
+    }
+    .right{
+      flex: 1;
+      padding: 20rpx;
+      position: relative;
+      .sub-title{
+        margin-top: 10rpx;
+        margin-bottom: 20rpx;
+      }
+      .tags{
+        display: flex;
+        margin-bottom: 26rpx;
+        .item-tag{
+          font-size: 20rpx;
+          color: #ffffff;
+          background: #CCCCCC;
+          border-radius: 8rpx;
+          width: 116rpx;
+          margin-right: 10rpx;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          text-align: center;
+        }
+      }
+      .price-container{
+        position: absolute;
+        width: 90%;
+        left: 20rpx;
+        bottom: 20rpx;
+        .price{
+          font-size: 28rpx;
+          color: #FA6400;
+        }
+        .btn{
+          background: #FA6400;
+          width: 128rpx;
+          height: 50rpx;
+          line-height: 50rpx;
+          text-align: center;
+          font-size: 24rpx;
+          color: #ffffff;
+          border-radius: 26rpx;
+          padding: 0;
+          margin: 0;
+        }
+      }
+    }
+  }
+  .item-course:last-child{
+    margin-bottom: 0;
+  }
+</style>

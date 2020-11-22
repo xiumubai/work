@@ -1,0 +1,179 @@
+<template>
+  <view class="container bg-ff">
+    <topNav title="测试"></topNav>
+    <view class="main-content">
+      <view class="testing">
+        <view class="subject">
+          <view class="title">选择孩子重点学习科目</view>
+          <view class="subject-content">
+            <repeat for="{{subs}}" key="index">
+              <view class="sub-item {{item.isSelect ? 'sub-item-active' : ''}}" data-index="{{index}}" @tap="selectSubject">{{item.name}}</view>
+            </repeat>
+            <view class="tips fz28 c999">可以选择多项</view>
+          </view>
+        </view>
+        <view class="class-container">
+          <view class="title">选择孩子的年级</view>
+          <picker mode='selector' value="{{index}}" bindchange="bindChange" range="{{classArray}}" range-key="name">
+            <view class="picker">
+              <view class="picker-container">
+                <view class="fz32">{{classArray[index].name}}</view>
+                <view class="icon-right"></view>
+              </view>
+              <view class="border-bottom"></view>
+            </view>
+          </picker>
+        </view>
+        <button class="btn" @tap="confirmCilck">确定</button>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+import request from '@/utils/request'
+import api from '@/api/api'
+export default class FollowTags extends wepy.page {
+  config = {
+    navigationBarTitleText: '测试'
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    date: 2016,
+    subs: [],
+    index: 0,
+    classVal: '',
+    classArray: []
+  }
+  methods = {
+    bindChange: function (e) {
+      this.index = e.detail.value
+      this.classVal = this.classArray[this.index].id
+    },
+    selectSubject (e) {
+      let index = e.currentTarget.dataset.index
+      let arr = this.subs
+      for (let i = 0; i < arr.length; i++) {
+        if (i === index) {
+          arr[i].isSelect = !arr[i].isSelect
+        }
+      }
+      this.subs = arr
+    },
+    // 确认提交信息
+    async confirmCilck () {
+      let courseCate = []
+      let grade = this.classVal
+      let subs = this.subs
+      for (let i = 0; i < subs.length; i++) {
+        if (subs[i].isSelect) {
+          courseCate.push(subs[i].id)
+        }
+      }
+      if (courseCate.length > 0) {
+        let followtagsResponse = await request.authRequest({
+          url: api.followtags,
+          data: {
+            courseCate: courseCate,
+            grade: grade
+          },
+          method: 'POST'
+        })
+        if (followtagsResponse.statusCode === 200) {
+          wx.reLaunch({
+            url: '/pages/index'
+          })
+        }
+      } else {
+        wepy.showModal({
+          title: '提示',
+          content: '请选择孩子重点学习科目',
+          showCancel: false
+        })
+      }
+    }
+  }
+  async onLoad () {
+    let followtagsResponse = await request.authRequest(api.followtags)
+    if (followtagsResponse.statusCode === 200) {
+      this.subs = followtagsResponse.data.data.courseCates
+      this.classArray = followtagsResponse.data.data.grades
+      this.classVal = this.classArray[0].id
+      this.$apply()
+    }
+  }
+}
+</script>
+
+<style lang="less">
+.testing{
+  text-align: center;
+  padding-bottom: 100rpx;
+  .subject{
+    margin-bottom: 100rpx;
+    margin-top: 100rpx;
+    .subject-content{
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      .sub-item{
+        font-size: 32rpx;
+        width: 250rpx;
+        height: 86rpx;
+        line-height: 86rpx;
+        border: 1rpx solid #F7B500;
+        border-radius: 44rpx;
+        margin-bottom: 46rpx;
+      }
+      .sub-item-active{
+        background: #F7B500;
+        color: #ffffff;
+      }
+    }
+    
+  }
+  .title{
+    font-size: 44rpx;
+    margin-bottom: 60rpx;
+  }
+  .class-container{
+    margin-bottom: 100rpx;
+    .picker{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      width: 100%;
+      .picker-container{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        margin-bottom: 14rpx;
+        .icon-right{
+          margin-left: 20rpx;
+        }
+      }
+      .border-bottom{
+        width: 154rpx;
+        height: 1rpx;
+        background: #CCCCCC;
+      }
+    }
+  }
+  .btn{
+    width: 400rpx;
+    height: 100rpx;
+    line-height: 100rpx;
+    background: #F7B500;
+    border-radius: 54rpx;
+    color: #ffffff;
+    font-size: 48rpx;
+    box-shadow: 0 8rpx #FF8D20; 
+  }
+}
+</style>

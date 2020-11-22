@@ -1,0 +1,908 @@
+{
+    "@platforms" : [ "android", "iPhone", "iPad" ],
+    "id" : "cn.bidinghuo.mobile", /*应用的标识，创建应用时自动生成，勿手动修改*/
+    "name" : "B+ 必订火", /*应用名称，程序桌面图标名称*/
+    "version" : {
+        "name" : "3.7.5.4", /*应用版本名称*/
+        "code" : "110"
+    },
+    "description" : "", /*应用描述信息*/
+    "icons" : {
+        "72" : "icon.png"
+    },
+    "launch_path" : "dist/index.html", /*应用的入口页面，默认为根目录下的index.html；支持网络地址，必须以http://或https://开头*/
+    "developer" : {
+        "name" : "Fengniao Tech", /*开发者名称*/
+        "email" : "pay@fn358.com", /*开发者邮箱地址*/
+        "url" : "https://www.bidinghuo.cn"
+    },
+    "permissions" : {
+        "Accelerometer" : {
+            "description" : "访问加速度感应器"
+        },
+        "Audio" : {
+            "description" : "访问麦克风"
+        },
+        "Cache" : {
+            "description" : "管理应用缓存"
+        },
+        "Camera" : {
+            "description" : "访问摄像头"
+        },
+        "Console" : {
+            "description" : "跟踪调试输出日志"
+        },
+        "Contacts" : {
+            "description" : "访问系统联系人信息"
+        },
+        "Device" : {
+            "description" : "访问设备信息"
+        },
+        "Downloader" : {
+            "description" : "文件下载管理"
+        },
+        "Events" : {
+            "description" : "应用扩展事件"
+        },
+        "File" : {
+            "description" : "访问本地文件系统"
+        },
+        "Gallery" : {
+            "description" : "访问系统相册"
+        },
+        "Geolocation" : {
+            "description" : "访问位置信息"
+        },
+        "Invocation" : {
+            "description" : "使用Native.js能力"
+        },
+        "Messaging" : {
+            "description" : "访问通讯能力"
+        },
+        "Orientation" : {
+            "description" : "访问方向感应器"
+        },
+        "Proximity" : {
+            "description" : "访问距离感应器"
+        },
+        "Storage" : {
+            "description" : "管理应用本地数据"
+        },
+        "Uploader" : {
+            "description" : "管理文件上传任务"
+        },
+        "Runtime" : {
+            "description" : "访问运行期环境"
+        },
+        "XMLHttpRequest" : {
+            "description" : "跨域网络访问"
+        },
+        "Zip" : {
+            "description" : "文件压缩与解压缩"
+        },
+        "Barcode" : {
+            "description" : "管理二维码扫描插件"
+        },
+        "Speech" : {
+            "description" : "管理语音识别插件"
+        },
+        "Webview" : {
+            "description" : "窗口管理"
+        },
+        "NativeUI" : {
+            "description" : "原生UI控件"
+        },
+        "Navigator" : {
+            "description" : "浏览器信息"
+        },
+        "NativeObj" : {
+            "description" : "原生对象"
+        },
+        "Push" : {},
+        "Statistic" : {}
+    },
+    "plus" : {
+        "splashscreen" : {
+            "autoclose" : true, /*是否自动关闭程序启动界面，true表示应用加载应用入口页面后自动关闭；false则需调plus.navigator.closeSplashscreen()关闭*/
+            "waiting" : true,
+            "delay" : "0"
+        },
+        "runmode" : "liberate", /*应用的首次启动运行模式，可取liberate或normal，liberate模式在第一次启动时将解压应用资源（Android平台File API才可正常访问_www目录）*/
+        "signature" : "Sk9JTiBVUyBtYWlsdG86aHIyMDEzQGRjbG91ZC5pbw==", /*可选，保留给应用签名，暂不使用*/
+        "distribute" : {
+            "plugins" : {
+                "statics" : {
+                    "umeng" : {
+                        "appkey_ios" : "5a1bd7c7f43e4862d0000081",
+                        "channelid_ios" : "main",
+                        "appkey_android" : "5a1bd75fb27b0a185a000083",
+                        "channelid_android" : "main"
+                    }
+                },
+                "push" : {
+                    "igexin" : {
+                        "appid" : "AqWcQqtf1G8XiAm66QhAQ4",
+                        "appkey" : "arr4zSPlGO9SahxEoa1Jp",
+                        "appsecret" : "C7z37W4osJ8faWQp0PR5D4"
+                    }
+                },
+                "speech" : {
+                    "ifly" : {}
+                }
+            },
+            "apple" : {
+                "appid" : "", /*iOS应用标识，苹果开发网站申请的appid，如io.dcloud.HelloH5*/
+                "mobileprovision" : "", /*iOS应用打包配置文件*/
+                "password" : "", /*iOS应用打包个人证书导入密码*/
+                "p12" : "", /*iOS应用打包个人证书，打包配置文件关联的个人证书*/
+                "devices" : "universal", /*iOS应用支持的设备类型，可取值iphone/ipad/universal*/
+                "frameworks" : [],
+                "urltypes" : [
+                    {
+                        "urlidentifier" : "cn.bidinghuo.mobile",
+                        "urlschemes" : [ "bidinghuo" ]
+                    }
+                ]
+            },
+            "google" : {
+                "packagename" : "", /*Android应用包名，如io.dcloud.HelloH5*/
+                "keystore" : "", /*Android应用打包使用的密钥库文件*/
+                "password" : "", /*Android应用打包使用密钥库中证书的密码*/
+                "aliasname" : "", /*Android应用打包使用密钥库中证书的别名*/
+                "permissions" : [
+                    "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_CONTACTS\"/>",
+                    "<uses-permission android:name=\"android.permission.MOUNT_UNMOUNT_FILESYSTEMS\"/>",
+                    "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_LOGS\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+                    "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
+                    "<uses-permission android:name=\"android.permission.SYSTEM_ALERT_WINDOW\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_CONTACTS\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.RECEIVE_BOOT_COMPLETED\"/>",
+                    "<uses-permission android:name=\"com.android.launcher.permission.UNINSTALL_SHORTCUT\"/>",
+                    "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+                    "<uses-permission android:name=\"android.permission.GET_ACCOUNTS\"/>",
+                    "<uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>",
+                    "<uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\"/>",
+                    "<uses-permission android:name=\"com.android.launcher.permission.INSTALL_SHORTCUT\"/>",
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
+                    "<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>",
+                    "<uses-permission android:name=\"android.permission.CALL_PHONE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
+                    "<uses-feature android:name=\"android.hardware.camera\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.RECEIVE_USER_PRESENT\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>"
+                ],
+                "schemes" : [ "bidinghuo" ]
+            },
+            "orientation" : [ "portrait-primary" ], /*应用支持的方向，portrait-primary：竖屏正方向；portrait-secondary：竖屏反方向；landscape-primary：横屏正方向；landscape-secondary：横屏反方向*/
+            "icons" : {
+                "ios" : {
+                    "prerendered" : true, /*应用图标是否已经高亮处理，在iOS6及以下设备上有效*/
+
+                    /*应用图标，分辨率：512x512，用于自动生成各种尺寸程序图标*/
+                    "iphone" : {
+                        "normal" : "unpackage/res/icons/57x57.png", /*iPhone普通屏幕程序图标，分辨率：57x57*/
+                        "retina" : "unpackage/res/icons/114x114.png", /*iPhone高分屏程序图标，分辨率：114x114*/
+
+                        /*iPhone iOS7高分屏程序图标，分辨率：120x120*/
+                        "spotlight-normal" : "unpackage/res/icons/29x29.png", /*iPhone Spotlight搜索程序图标，分辨率：29x29*/
+                        "spotlight-retina" : "unpackage/res/icons/58x58.png", /*iPhone高分屏Spotlight搜索程序图标，分辨率：58x58*/
+
+                        /*iPhone iOS7高分屏Spotlight搜索程序图标，分辨率：80x80*/
+                        "settings-normal" : "unpackage/res/icons/29x29.png", /*iPhone设置页面程序图标，分辨率：29x29*/
+                        "spotlight@3x" : "unpackage/res/icons/120x120.png",
+                        "notification@2x" : "unpackage/res/icons/40x40.png",
+                        "notification@3x" : "unpackage/res/icons/60x60.png",
+                        "app@3x" : "unpackage/res/icons/180x180.png",
+                        "app@2x" : "unpackage/res/icons/120x120.png",
+                        "settings@3x" : "unpackage/res/icons/87x87.png",
+                        "settings@2x" : "unpackage/res/icons/58x58.png",
+                        "spotlight@2x" : "unpackage/res/icons/80x80.png"
+                    },
+                    "ipad" : {
+                        "normal" : "unpackage/res/icons/72x72.png", /*iPad普通屏幕程序图标，分辨率：72x72*/
+                        "retina" : "unpackage/res/icons/144x144.png", /*iPad高分屏程序图标，分辨率：144x144*/
+
+                        /*iPad iOS7程序图标，分辨率：76x76*//*iPad iOS7高分屏程序图标，分辨率：152x152*/
+                        "spotlight-normal" : "unpackage/res/icons/50x50.png", /*iPad Spotlight搜索程序图标，分辨率：50x50*/
+                        "spotlight-retina" : "unpackage/res/icons/100x100.png", /*iPad高分屏Spotlight搜索程序图标，分辨率：100x100*/
+
+                        /*iPad iOS7 Spotlight搜索程序图标，分辨率：40x40*//*iPad iOS7高分屏Spotlight搜索程序图标，分辨率：80x80*//*iPad设置页面程序图标，分辨率：29x29*/
+                        "proapp@2x" : "unpackage/res/icons/167x167.png",
+                        "notification" : "unpackage/res/icons/20x20.png",
+                        "notification@2x" : "unpackage/res/icons/40x40.png",
+                        "app" : "unpackage/res/icons/76x76.png",
+                        "app@2x" : "unpackage/res/icons/152x152.png",
+                        "settings" : "unpackage/res/icons/29x29.png",
+                        "spotlight" : "unpackage/res/icons/40x40.png",
+                        "settings@2x" : "unpackage/res/icons/58x58.png",
+                        "spotlight@2x" : "unpackage/res/icons/80x80.png"
+                    },
+                    "appstore" : "unpackage/res/icons/1024x1024.png"
+                },
+                "android" : {
+                    "mdpi" : "unpackage/res/icons/48x48.png", /*普通屏程序图标，分辨率：48x48*/
+                    "ldpi" : "unpackage/res/icons/48x48.png", /*大屏程序图标，分辨率：48x48*/
+                    "hdpi" : "unpackage/res/icons/72x72.png", /*高分屏程序图标，分辨率：72x72*/
+                    "xhdpi" : "unpackage/res/icons/96x96.png", /*720P高分屏程序图标，分辨率：96x96*/
+                    "xxhdpi" : "unpackage/res/icons/144x144.png",
+                    "xxxhdpi" : "unpackage/res/icons/192x192.png"
+                }
+            },
+            "splashscreen" : {
+                "ios" : {
+                    "iphone" : {
+                        "default" : "", /*iPhone3启动图片选，分辨率：320x480*/
+                        "retina35" : "unpackage/res/start/640x960-iPhone4.png", /*3.5英寸设备(iPhone4)启动图片，分辨率：640x960*/
+                        "retina40" : "unpackage/res/start/640x1136-2.png",
+                        "retina55" : "unpackage/res/start/1242x2208-4.png",
+                        "retina47" : "unpackage/res/start/750x1334-3.png"
+                    },
+                    "ipad" : {
+                        "portrait" : "unpackage/res/start/768x1004-6.png", /*iPad竖屏启动图片，分辨率：768x1004*/
+                        "portrait-retina" : "", /*iPad高分屏竖屏图片，分辨率：1536x2008*/
+                        "landscape" : "", /*iPad横屏启动图片，分辨率：1024x748*/
+                        "landscape-retina" : "", /*iPad高分屏横屏启动图片，分辨率：2048x1496*/
+                        "portrait7" : "", /*iPad iOS7竖屏启动图片，分辨率：768x1024*/
+                        "portrait-retina7" : "unpackage/res/start/1536x2048-15.png", /*iPad iOS7高分屏竖屏图片，分辨率：1536x2048*/
+                        "landscape7" : "", /*iPad iOS7横屏启动图片，分辨率：1024x768*/
+                        "landscape-retina7" : "unpackage/res/start/2048x1536-16.png"
+                    }
+                },
+                "android" : {
+                    "mdpi" : "", /*普通屏启动图片，分辨率：240x282*/
+                    "ldpi" : "", /*大屏启动图片，分辨率：320x442*/
+                    "hdpi" : "unpackage/res/start/480x762-17.png", /*高分屏启动图片，分辨率：480x762*/
+                    "xhdpi" : "unpackage/res/start/720x1242-18.png", /*720P高分屏启动图片，分辨率：720x1242*/
+                    "xxhdpi" : "unpackage/res/start/1080x1882-19.png"
+                }
+            },
+            "debug" : true
+        }
+    },
+    "dependencies" : {
+        "pages" : {
+            "barItem/more.html" : {
+                "href" : "barItem/more.html",
+                "resources" : [
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "js/mui.min.js",
+                    "img/exhibit_background.png",
+                    "img/match_background.png",
+                    "img/mask_background.png"
+                ],
+                "priority" : 0,
+                "refer" : [ "barItem/match.html", "barItem/exhibit.html" ]
+            },
+            "barItem/order_analysis.html" : {
+                "href" : "barItem/order_analysis.html",
+                "resources" : [
+                    "js/mui.min.js",
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "js/common.js",
+                    "js/vue.min.js",
+                    "img/mask_background.png",
+                    "css/fixed-table.css"
+                ],
+                "priority" : 1,
+                "refer" : [ "order-analysis-menu.html" ]
+            },
+            "mine/audit_order.html" : {
+                "href" : "mine/audit_order.html",
+                "resources" : [
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "js/mui.min.js",
+                    "css/base.css",
+                    "js/vue.min.js",
+                    "js/common.js",
+                    "img/huizong.png",
+                    "img/no_data.png"
+                ],
+                "priority" : 2,
+                "refer" : []
+            },
+            "mine/target.html" : {
+                "href" : "mine/target.html",
+                "resources" : [
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "js/mui.min.js",
+                    "css/base.css",
+                    "js/vue.min.js",
+                    "js/common.js",
+                    "img/huizong.png",
+                    "img/no_data.png"
+                ],
+                "priority" : 3,
+                "refer" : []
+            },
+            "mine/unusual_order.html" : {
+                "href" : "mine/unusual_order.html",
+                "resources" : [
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "js/mui.min.js",
+                    "js/common.js",
+                    "img/no_data.png"
+                ],
+                "priority" : 4,
+                "refer" : []
+            },
+            "mine/favorite.html" : {
+                "href" : "mine/favorite.html",
+                "resources" : [ "css/mui.min.css", "fonts/mui.ttf", "js/mui.min.js" ],
+                "priority" : 5,
+                "refer" : []
+            },
+            "mine/rank.html" : {
+                "href" : "mine/rank.html",
+                "resources" : [
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "js/mui.min.js",
+                    "css/base.css",
+                    "js/vue.min.js",
+                    "js/common.js",
+                    "img/no_data.png"
+                ],
+                "priority" : 6,
+                "refer" : [ "rank-menu.html" ]
+            },
+            "barItem/mine.html" : {
+                "href" : "barItem/mine.html",
+                "resources" : [ "js/mui.min.js", "css/mui.min.css", "fonts/mui.ttf" ],
+                "refer" : [
+                    "mine/audit_order.html",
+                    "mine/target.html",
+                    "mine/unusual_order.html",
+                    "mine/favorite.html",
+                    "mine/rank.html",
+                    "platform/detail-main.html"
+                ],
+                "priority" : 2
+            },
+            "platform/meeting_detail.html" : {
+                "href" : "platform/meeting_detail.html",
+                "resources" : [
+                    "js/mui.min.js",
+                    "js/common.js",
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "img/a.jpg",
+                    "img/meeting_default.jpg"
+                ],
+                "refer" : [ "platform/detail-main.html", "index.html" ],
+                "priority" : 6
+            },
+            "platform/meeting_detail-main.html" : {
+                "href" : "platform/meeting_detail-main.html",
+                "resources" : [
+                    "js/mui.min.js",
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "platform/meeting_detail.html"
+                ],
+                "refer" : [ "platform/detail-main.html", "platform/meeting_detail.html" ],
+                "priority" : 5
+            },
+            "platform/detail.html" : {
+                "href" : "platform/detail.html",
+                "resources" : [ "js/mui.min.js", "css/mui.min.css", "fonts/mui.ttf", "js/common.js" ],
+                "refer" : [
+                    "platform/list.html",
+                    "platform/meeting_detail-main.html",
+                    "platform/main.html"
+                ],
+                "priority" : 4
+            },
+            "platform/detail-main.html" : {
+                "href" : "platform/detail-main.html",
+                "resources" : [
+                    "js/mui.min.js",
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "platform/detail.html",
+                    "img/dh_bkd.png",
+                    "img/platform_logo.png",
+                    "js/common.js"
+                ],
+                "refer" : [
+                    "platform/list.html",
+                    "platform/meeting_detail-main.html",
+                    "platform/main.html",
+                    "platform/detail.html"
+                ],
+                "priority" : 3
+            },
+            "platform/list.html" : {
+                "href" : "platform/list.html",
+                "resources" : [
+                    "js/mui.min.js",
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "js/common.js",
+                    "img/platform_logo.png",
+                    "css/platform.css",
+                    "img/guide_0.png",
+                    "img/guide_1.png",
+                    "img/guide_2.png",
+                    "img/guide_3.png",
+                    "img/guide_4.png"
+                ],
+                "refer" : [ "platform/detail-main.html" ],
+                "priority" : 3
+            },
+            "barItem/my_order.html" : {
+                "href" : "barItem/my_order.html",
+                "resources" : [
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "js/mui.min.js",
+                    "css/base.css",
+                    "js/vue.min.js",
+                    "js/common.js",
+                    "img/no_data.png",
+                    "css/fontawesome/css/font-awesome.min.css",
+                    "css/fontawesome/fonts/fontawesome-webfont.eot",
+                    "css/fontawesome/fonts/fontawesome-webfont.woff2",
+                    "css/fontawesome/fonts/fontawesome-webfont.woff",
+                    "css/fontawesome/fonts/fontawesome-webfont.ttf",
+                    "css/fontawesome/fonts/fontawesome-webfont.svg",
+                    "img/mask_background.png"
+                ],
+                "priority" : 4,
+                "refer" : [ "index-menu.html", "barItem/do_order.html" ]
+            },
+            "barItem/goods.html" : {
+                "href" : "barItem/goods.html",
+                "resources" : [
+                    "js/mui.min.js",
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "css/base.css",
+                    "js/common.js",
+                    "js/vue.min.js",
+                    "barItem/goods.html",
+                    "img/no-good.png",
+                    "js/mui.picker.js",
+                    "js/mui.poppicker.js",
+                    "img/icon-filter.png"
+                ],
+                "priority" : 5,
+                "refer" : [
+                    "barItem/good-left-plus-menu.html",
+                    "barItem/change_good_detail.html",
+                    "index-menu.html"
+                ]
+            },
+            "index.html" : {
+                "href" : "index.html",
+                "resources" : [
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "js/mui.min.js",
+                    "js/common.js",
+                    "img/bar_icon_goods_selected.png",
+                    "img/bar_icon_order_analysis.png",
+                    "img/bar_icon_more.png",
+                    "img/bar_icon_myorder.png",
+                    "img/bar_icon_mine.png",
+                    "barItem/goods.html",
+                    "js/vue.min.js",
+                    "img/icon-filter.png"
+                ],
+                "refer" : [
+                    "barItem/more.html",
+                    "barItem/order_analysis.html",
+                    "barItem/mine.html",
+                    "platform/list.html",
+                    "barItem/my_order.html",
+                    "platform/meeting_detail-main.html",
+                    "platform/first_run.html",
+                    "platform/main.html",
+                    "mine/target.html",
+                    "bdh/index.html",
+                    "app_list.html",
+                    "bdh/platform/main.html",
+                    "ns/platform/main.html"
+                ],
+                "priority" : 0
+            },
+            "barItem/change_good_detail.html" : {
+                "resources" : [
+                    "css/base.css",
+                    "js/common.js",
+                    "js/mui.min.js",
+                    "fonts/mui.ttf",
+                    "css/mui.min.css",
+                    "js/vue.min.js",
+                    "css/app.css",
+                    "js/mui.zoom.js",
+                    "js/mui.previewimage.js",
+                    "img/sc0.png",
+                    "img/sc1.png"
+                ],
+                "refer" : [ "barItem/match_info.html", "barItem/do_order.html" ],
+                "priority" : 0
+            },
+            "platform/first_run.html" : {
+                "resources" : [
+                    "img/guide_1.png",
+                    "img/guide_0.png",
+                    "img/guide_3.png",
+                    "img/guide_4.png",
+                    "img/guide_arrow.png",
+                    "img/guide_2.png",
+                    "css/platform.css",
+                    "js/mui.min.js",
+                    "css/mui.min.css",
+                    "fonts/mui.ttf"
+                ],
+                "refer" : [ "platform/search.html" ],
+                "priority" : 0
+            },
+            "barItem/match.html" : {
+                "resources" : [
+                    "fonts/mui.ttf",
+                    "img/no_data.png",
+                    "js/vue.min.js",
+                    "js/mui.min.js",
+                    "js/common.js",
+                    "js/mui.picker.js",
+                    "js/mui.poppicker.js",
+                    "css/mui.min.css",
+                    "css/base.css"
+                ],
+                "refer" : [ "barItem/match_info.html" ],
+                "priority" : 0
+            },
+            "platform/main.html" : {
+                "href" : "platform/main.html",
+                "resources" : [
+                    "js/mui.min.js",
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "css/platform.css",
+                    "platform/list.html"
+                ],
+                "refer" : [ "platform/search.html", "platform/list.html" ],
+                "priority" : 2
+            },
+            "platform/list_seach.html" : {
+                "href" : "platform/list_seach.html",
+                "resources" : [
+                    "js/mui.min.js",
+                    "img/platform_logo.png",
+                    "css/mui.min.css",
+                    "fonts/mui.ttf"
+                ],
+                "refer" : [ "platform/detail-main.html" ],
+                "priority" : 1
+            },
+            "platform/search.html" : {
+                "href" : "platform/search.html",
+                "resources" : [
+                    "js/mui.min.js",
+                    "js/common.js",
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "css/platform.css",
+                    "platform/list_seach.html"
+                ],
+                "refer" : [ "platform/main.html", "platform/list_seach.html" ],
+                "priority" : 1
+            },
+            "index-menu.html" : {
+                "href" : "index-menu.html",
+                "resources" : [
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "css/base.css",
+                    "js/vue.min.js",
+                    "js/mui.min.js",
+                    "js/common.js"
+                ],
+                "priority" : 5,
+                "refer" : []
+            },
+            "barItem/do_order.html" : {
+                "resources" : [
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "css/app.css",
+                    "css/base.css",
+                    "js/vue.min.js",
+                    "js/mui.min.js",
+                    "js/common.js",
+                    "img/qkorder.png",
+                    "img/qxorder.png"
+                ],
+                "refer" : [ "barItem/exhibit_info.html" ],
+                "priority" : 0
+            },
+            "barItem/exhibit_info.html" : {
+                "href" : "barItem/exhibit_info.html",
+                "resources" : [
+                    "js/vue.min.js",
+                    "js/mui.min.js",
+                    "js/mui.lazyload.js",
+                    "js/mui.lazyload.img.js",
+                    "js/common.js",
+                    "js/mui.zoom.js",
+                    "js/mui.previewimage.js",
+                    "img/60x60.gif",
+                    "css/mui.min.css",
+                    "fonts/mui.ttf"
+                ],
+                "refer" : [ "barItem/change_good_detail.html", "barItem/do_order.html" ],
+                "priority" : 1
+            },
+            "barItem/match_info.html" : {
+                "href" : "barItem/match_info.html",
+                "resources" : [
+                    "js/vue.min.js",
+                    "js/mui.min.js",
+                    "js/common.js",
+                    "js/mui.zoom.js",
+                    "js/mui.previewimage.js",
+                    "css/mui.min.css",
+                    "fonts/mui.ttf"
+                ],
+                "refer" : [ "barItem/change_good_detail.html", "barItem/do_order.html" ],
+                "priority" : 0
+            },
+            "barItem/exhibit.html" : {
+                "href" : "barItem/exhibit.html",
+                "resources" : [
+                    "js/vue.min.js",
+                    "js/mui.min.js",
+                    "js/common.js",
+                    "js/mui.picker.js",
+                    "js/mui.poppicker.js",
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "css/base.css",
+                    "img/no_data.png"
+                ],
+                "refer" : [ "barItem/match_info.html", "barItem/exhibit_info.html" ],
+                "priority" : 0
+            },
+            "order-analysis-menu.html" : {
+                "href" : "order-analysis-menu.html",
+                "resources" : [
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "css/base.css",
+                    "js/vue.min.js",
+                    "js/mui.min.js",
+                    "js/common.js"
+                ],
+                "priority" : 2
+            },
+            "rank-menu.html" : {
+                "href" : "rank-menu.html",
+                "resources" : [
+                    "css/mui.min.css",
+                    "fonts/mui.ttf",
+                    "css/base.css",
+                    "js/vue.min.js",
+                    "js/mui.min.js",
+                    "js/common.js"
+                ],
+                "priority" : 7
+            },
+            "bdh/barItem/order_analysis.html" : {
+                "resources" : [],
+                "refer" : [ "bdh/order-analysis-menu.html" ],
+                "priority" : 0
+            },
+            "bdh/platform/meeting_detail-main.html" : {
+                "resources" : [ "bdh/platform/meeting_detail.html" ],
+                "refer" : [ "bdh/platform/detail-main.html" ],
+                "priority" : 0
+            },
+            "bdh/platform/detail-main.html" : {
+                "resources" : [ "bdh/platform/detail.html" ],
+                "refer" : [ "bdh/platform/main.html" ],
+                "priority" : 0
+            },
+            "bdh/barItem/goods.html" : {
+                "resources" : [],
+                "refer" : [
+                    "bdh/index-menu.html",
+                    "bdh/barItem/change_good_detail.html",
+                    "bdh/goods-menu.html"
+                ],
+                "priority" : 0
+            },
+            "bdh/barItem/my_order.html" : {
+                "resources" : [],
+                "refer" : [ "bdh/barItem/do_order.html", "bdh/index-menu.html" ],
+                "priority" : 0
+            },
+            "bdh/index.html" : {
+                "resources" : [ "bdh/barItem/goods.html" ],
+                "refer" : [
+                    "bdh/platform/meeting_detail-main.html",
+                    "bdh/barItem/order_analysis.html",
+                    "bdh/barItem/my_order.html",
+                    "bdh/barItem/mine.html",
+                    "bdh/barItem/more.html"
+                ],
+                "priority" : 0
+            },
+            "bdh/platform/main.html" : {
+                "resources" : [ "bdh/platform/list.html" ],
+                "refer" : [ "bdh/platform/search.html", "app_list.html" ],
+                "priority" : 0
+            },
+            "bdh/platform/search.html" : {
+                "resources" : [ "bdh/platform/list_seach.html" ],
+                "refer" : [],
+                "priority" : 0
+            },
+            "app_list.html" : {
+                "resources" : [],
+                "refer" : [
+                    "about_us.html",
+                    "ns/platform/first_run.html",
+                    "bdh/platform/first_run.html",
+                    "ns/platform/main.html",
+                    "bdh/platform/main.html"
+                ],
+                "priority" : 0
+            },
+            "ns/platform/first_run.html" : {
+                "resources" : [],
+                "refer" : [ "ns/platform/main.html", "ns/platform/search.html" ],
+                "priority" : 0
+            },
+            "ns/platform/meeting_detail-main.html" : {
+                "resources" : [ "ns/platform/meeting_detail.html" ],
+                "refer" : [],
+                "priority" : 0
+            },
+            "ns/platform/main.html" : {
+                "resources" : [ "ns/platform/list.html" ],
+                "refer" : [ "ns/platform/search.html" ],
+                "priority" : 0
+            },
+            "ns/platform/search.html" : {
+                "resources" : [ "ns/platform/list_seach.html" ],
+                "refer" : [],
+                "priority" : 0
+            },
+            "ns/platform/detail-main.html" : {
+                "resources" : [ "ns/platform/detail.html" ],
+                "refer" : [],
+                "priority" : 0
+            },
+            "ns/platform/list_seach.html" : {
+                "resources" : [],
+                "refer" : [ "ns/platform/detail-main.html" ],
+                "priority" : 0
+            },
+            "ns/platform/detail.html" : {
+                "resources" : [],
+                "refer" : [ "ns/platform/meeting_detail-main.html" ],
+                "priority" : 0
+            },
+            "bdh/platform/list.html" : {
+                "resources" : [],
+                "refer" : [ "bdh/index.html", "bdh/platform/detail-main.html" ],
+                "priority" : 0
+            },
+            "bdh/platform/detail.html" : {
+                "resources" : [],
+                "refer" : [ "bdh/platform/meeting_detail-main.html" ],
+                "priority" : 0
+            },
+            "bdh/platform/list_seach.html" : {
+                "resources" : [],
+                "refer" : [ "bdh/platform/detail-main.html" ],
+                "priority" : 0
+            },
+            "bdh/platform/first_run.html" : {
+                "resources" : [],
+                "refer" : [ "bdh/platform/main.html", "bdh/platform/search.html" ],
+                "priority" : 0
+            },
+            "ns/platform/list.html" : {
+                "resources" : [],
+                "refer" : [ "ns/platform/detail-main.html" ],
+                "priority" : 0
+            },
+            "bdh/platform/meeting_detail.html" : {
+                "resources" : [],
+                "refer" : [ "bdh/index.html" ],
+                "priority" : 0
+            },
+            "bdh/barItem/mine.html" : {
+                "resources" : [],
+                "refer" : [
+                    "bdh/mine/contract.html",
+                    "bdh/mine/target.html",
+                    "bdh/mine/unusual_order.html",
+                    "bdh/mine/star.html",
+                    "bdh/mine/rank.html",
+                    "bdh/mine/audit_order.html",
+                    "bdh/mine/favorite.html",
+                    "bdh/mine/product_total.html"
+                ],
+                "priority" : 0
+            },
+            "bdh/mine/star.html" : {
+                "resources" : [ "bdh/mine/star_no_data.html" ],
+                "refer" : [],
+                "priority" : 0
+            },
+            "bdh/mine/rank.html" : {
+                "resources" : [],
+                "refer" : [ "bdh/rank-menu.html" ],
+                "priority" : 0
+            },
+            "bdh/mine/contract.html" : {
+                "resources" : [],
+                "refer" : [ "bdh/mine/contract_detail.html" ],
+                "priority" : 0
+            },
+            "bdh/mine/audit_order.html" : {
+                "resources" : [],
+                "refer" : [ "bdh/mine/audit_order_detail.html" ],
+                "priority" : 0
+            },
+            "bdh/mine/favorite.html" : {
+                "resources" : [],
+                "refer" : [ "bdh/barItem/change_good_detail.html" ],
+                "priority" : 0
+            },
+            "bdh/mine/product_total.html" : {
+                "resources" : [],
+                "refer" : [ "bdh/product-total-menu.html" ],
+                "priority" : 0
+            }
+        },
+        "idle" : {
+            "resources" : [
+                "css/mui.css",
+                "js/fixed-table.js",
+                "img/bar_icon_order_analysis_selected.png",
+                "img/bar_icon_mine_selected.png",
+                "img/deduce_background.png",
+                "img/bar_icon_goods.png",
+                "css/fontawesome/css/font-awesome.css",
+                "css/fontawesome/fonts/FontAwesome.otf",
+                "img/bar_icon_myorder_selected.png",
+                "img/bar_icon_more_selected.png",
+                "js/mui.js",
+                "css/fontawesome/css/font-awesome.css.map",
+                "css/tabella.css",
+                "README.md",
+                "js/ejs.min.js"
+            ]
+        }
+    },
+    "fullscreen" : false,
+    "unpackage" : [
+        "css/mui.css",
+        "js/mui.js",
+        "README.md",
+        "css/fontawesome/css/font-awesome.css",
+        "css/fontawesome/css/font-awesome.css.map",
+        "css/fontawesome/fonts/FontAwesome.otf",
+        "css/tabella.css",
+        "js/ejs.min.js",
+        "js/fixed-table.js"
+    ]
+}

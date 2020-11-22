@@ -1,0 +1,293 @@
+<template>
+  <view class="container">
+    <topNav title="单词听写" isShowBack="true"></topNav>
+    <view class="main-content">
+      <view class="title-content" bindtap="bindLink" wx:if="{{noChange !== '0'}}">
+        <view class="text">{{practiceList.unit.name}}</view>
+        <view class="rignt-content">
+          <view class="sub-title">切换</view>
+          <view class="icon-right"></view>
+        </view>
+      </view>
+      <view class="progress-container">
+        <view class="text">当前进度</view>
+        <view class="progress-bar"><progress percent="{{percent}}" border-radius="10" stroke-width="15" color="#FFC662" backgroundColor="#CCC" /></view>
+        <view class="progress-num">{{length + 1}}/{{practiceList.list.length}}</view>
+      </view>
+      <view class="word-container">
+        <view class="fanyi">{{listenList.stem}}</view>
+        <view class="word">{{listenList.answer}}</view>
+        <view class="voice" bindtap="playAudio"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/icon_shengyin.png"/></view>
+      </view>
+      
+      <view class="btn-container">
+        <view class="btn-box">
+          <view class="prev btn-c {{length !== 0 ? 'active' : ''}}" bindtap="bindPrev">上一个</view>
+          <view class="bd">
+            <image bindtap="stopAudio" wx:if="{{isPlay}}" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/listen-write/icon_zanting@2x.png"/>
+            <image bindtap="playAudio" wx:else src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/listen-write/icon_bofang@2x.png"/>
+          </view>
+          <view class="next btn-c {{length !==  practiceList.list.length - 1 ? 'active' : ''}}" bindtap="bindNext">下一个</view>
+        </view>
+        <van-toast id="van-toast" />
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+import api from '@/api/api'
+import request from '@/utils/request'
+import Toast from '../vant-weapp/toast/toast'
+export default class DictationEnglish extends wepy.page {
+  config = {
+    navigationBarTitleText: '单词听写',
+    usingComponents: {
+      'van-toast': '../vant-weapp/toast/index'
+    }
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    rate: 0,
+    length: 0,
+    percent: 0,
+    myaudio: '',
+    voice: '',
+    noChange: '1',
+    isPlay: false,
+    practiceList: {},
+    listenList: [],
+    chapterId: '',
+    params: {
+      isFinished: 1,
+      question: []
+    }
+  }
+  async onLoad (options) {
+    this.chapterId = options.nodeId
+    this.noChange = options.noChange
+    this.myaudio = wx.createInnerAudioContext()
+    this.$apply()
+    await this.fetchListenList()
+    this.myaudio.onEnded(() => {
+      this.isPlay = false
+      this.$apply()
+      if (this.length === this.practiceList.list.length - 1) {
+        console.log(1)
+        // 最后一个播放完毕，提交答案
+        this.practiceList.list.map(v => {
+          let obj = {}
+          obj.id = v.id
+          obj.isisCorrect = 1
+          this.params.question.push(obj)
+          this.$apply()
+        })
+        this.submitAnswer()
+      }
+    })
+  }
+  onShow () {
+  }
+  onUnload () {
+    this.myaudio.destroy()
+  }
+  methods = {
+    bindLink() {
+      this.myaudio.destroy()
+      wx.navigateBack({
+        delta: 1
+      })
+    },
+    bindPrev () {
+      if (this.length > 0) {
+        this.length -= 1
+        this.percent -= this.rate
+        this.listenList = this.practiceList.list[this.length]
+        this.$apply()
+        this.playAudio()
+      } else {
+        Toast('已经是第一个了~')
+      }
+    },
+    bindNext () {
+      if (this.length + 1 < this.practiceList.list.length) {
+        this.length += 1
+        this.percent += this.rate
+        this.listenList = this.practiceList.list[this.length]
+        this.$apply()
+        this.playAudio()
+      } else {
+        Toast('已经是最后一个了~')
+      }
+    }
+  }
+  // 暂停audio
+  stopAudio () {
+    this.myaudio.stop()
+    this.isPlay = false
+    this.$apply()
+  }
+  // 播放audio
+  playAudio () {
+    this.stopAudio()
+    if (!this.isPlay) {
+      this.myaudio.src = this.listenList.stemAudio
+      this.myaudio.play()
+      this.isPlay = true
+      this.$apply()
+    }
+  }
+  async submitAnswer () {
+    let res = await request.authRequest({
+      url: api.answers,
+      method: 'POST',
+      data: this.params
+    }, false)
+    if (res.statusCode === 200) {
+      wepy.setStorageSync('lwResult', this.practiceList)
+      this.params.question = []
+      wepy.redirectTo({
+        url: 'dictation_result?subject=3'
+      })
+    }
+  }
+  async fetchListenList () {
+    let res = await request.authRequest({
+      url: api.englishDictatePractices,
+      data: {
+        chapterId: this.chapterId
+      }
+    })
+    if (res.statusCode === 200) {
+      let data = res.data.data
+      this.practiceList = data
+      this.listenList = this.practiceList.list[0]
+      this.rate = 100 / this.practiceList.list.length
+      this.percent = this.rate
+      this.params.groupId = this.practiceList.groupId
+      this.params.scene = this.practiceList.scene
+      this.$apply()
+      this.playAudio()
+    }
+  }
+}
+</script>
+<style lang="less">
+.main-content{
+  padding: 0 15px;
+  .title-content{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    padding: 0 10px;
+    .text{
+      color: #333;
+      font-size: 16px;
+    }
+    .rignt-content{
+      display: flex;
+      align-items: center;
+      .sub-title{
+        color: #999;
+        font-size: 14px;
+        margin-right: 5px;
+      }
+    }
+  }
+  .progress-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top:10px;
+    .text{
+      font-size: 14px;
+      color: #999999;
+    }
+    .progress-bar{
+      flex: 155px 0 0;
+      margin: 0 10px;
+    }
+    .progress-num{
+      font-size: 14px;
+      color: #999999;
+    }
+  }
+  .word-container{
+    background: #fff;
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    .fanyi{
+      font-size: 20px;
+      color: #333;
+      margin-top: 58px;
+      margin-bottom: 30px;
+    }
+    .word{
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 116px;
+    }
+    .voice{
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 39px;
+      height: 39px;
+    }
+  }
+  .btn-container{
+    display: flex;
+    justify-content: center;
+    margin: 30px 0;
+    .btn-box{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 232px;
+      height: 42px;
+      background: #fff;
+      border-radius: 21px;
+      box-shadow:0 8px 12px rgba(255,189,90,0.2);
+      .btn-nostyle{
+        border-radius:50%;
+      }
+      .bd{
+        width: 62px;
+        height: 62px;
+        background: #FFC662;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        image{
+          width: 18px;
+          height: 24px;
+        }
+      }
+      .btn-c{
+        font-size: 16px;
+        color: #DDDDDD;
+        &.active{
+          color: #FFC662;
+        }
+        &.prev{
+          margin-left: 10px;
+        }
+        &.next{
+          margin-right: 10px;
+        }
+      }
+    }
+  }
+}
+</style>

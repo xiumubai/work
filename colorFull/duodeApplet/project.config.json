@@ -1,0 +1,13 @@
+{
+  "description": "wepy脚手架",
+  "setting": {
+    "urlCheck": true,
+    "es6": false,
+    "postcss": false,
+    "minified": false
+  },
+  "compileType": "miniprogram",
+  "appid": "wx5d7f1a9c4e9505b2",
+  "projectname": "wepy-cli-project",
+  "miniprogramRoot": "./dist"
+}

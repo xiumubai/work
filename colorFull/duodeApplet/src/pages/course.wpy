@@ -1,0 +1,192 @@
+<template>
+  <view class="container">
+    <topNav title="课程中心"></topNav>
+    <scroll-view scroll-y style="height: {{height}}px;" bindscrolltolower="scrollToBottom">
+      <view class="main-content" height="{{height}}">
+        <view class="course">
+          <view class="banner-container bg-f3">
+            <swiper
+              class="swiper-container"
+              indicator-dots="true"
+              indicator-color="#CCCCCC"
+              indicator-active-color="#61BAFF"
+              autoplay="true"
+              circular="true"
+              current="0">
+              <repeat for="{{bannerList}}" key="index">
+                <swiper-item>
+                  <view class="swiper-item bg-f3" data-id="{{item.id}}" @tap="linkToCourseDetail">
+                    <image src="{{item.faceUrl}}" mode="aspectFill"/>
+                  </view>
+                </swiper-item>
+              </repeat>
+            </swiper>
+          </view>
+          <view class="nav-container">
+            <repeat for="{{cateList}}" key="index">
+              <view class="nav-item" @tap="linkToCourseList" data-id="{{item.id}}" data-name="{{item.name}}">
+                <view class="img">
+                  <image src="{{item.image_url}}" mode="aspectFill"/>
+                </view>
+                <view class="text">{{item.name}}</view>
+              </view>
+            </repeat>
+          </view>
+          <view class="course-container">
+            <repeat for="{{courseList}}" key="index">
+              <CousrItem :item.sync="item" :isShowPrice="isShowPrice"></CousrItem>
+            </repeat>
+            <view class="load-more" wx:if="{{loadMore}}">
+              <view class="border-1px"></view>
+              <view class="text">没有更多了</view>
+              <view class="border-1px"></view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import request from '@/utils/request'
+import api from '@/api/api'
+import topNav from '@/components/topNav'
+import CousrItem from '@/components/courseItem'
+export default class Course extends wepy.page {
+  config = {
+    navigationBarTitleText: '课程中心'
+  }
+  components = {
+    topNav: topNav,
+    CousrItem: CousrItem
+  }
+  data = {
+    height: 0,
+    page: 1,
+    perPage: 10,
+    pages: 0,
+    courseList: [],
+    loading: false,
+    bannerList: [],
+    cateList: [],
+    loadMore: false
+  }
+
+  computed = {
+    isShowPrice () {
+      return !this.$parent.globalData.isiOS
+    }
+  }
+
+  methods = {
+    linkToCourseDetail (e) {
+      let id = e.currentTarget.dataset.id
+      wx.navigateTo({
+        url: '/pages/course_detail?id=' + id
+      })
+    },
+    linkToCourseList (e) {
+      let id = e.currentTarget.dataset.id
+      let name = e.currentTarget.dataset.name
+      if (name === '动画儿歌') {
+        wepy.navigateTo({
+          url: '/pages/listen_and_look?id=' + id
+        })
+      } else {
+        wepy.navigateTo({
+          url: '/pages/course_list?id=' + id
+        })
+      }
+    }
+  }
+  async onLoad () {
+    this.height = this.$parent.globalData.height
+    this.fetchArticleList(1)
+
+    // banner
+    let bannerResponse = await request.authRequest(api.topcourses)
+    if (bannerResponse.statusCode === 200) {
+      this.bannerList = bannerResponse.data.data.list
+      this.$apply()
+    }
+    // 课程分类
+    let cateResponse = await request.authRequest(api.coursecates)
+    if (cateResponse.statusCode === 200) {
+      this.cateList = cateResponse.data.data
+      this.$apply()
+    }
+  }
+  scrollToBottom() {
+    // 下拉触底，先判断是否有请求正在进行中
+    // 以及检查当前请求页数是不是小于数据总页数，如符合条件，则发送请求
+    if (!this.loading && this.data.page < this.data.pages) {
+      this.fetchArticleList(this.data.page + 1)
+    } else {
+      this.loadMore = true
+      this.$apply()
+    }
+  }
+  async fetchArticleList (page) {
+    this.loading = true
+    this.$apply()
+    let listResponse = await request.authRequest({
+      url: api.coursesList,
+      data: {
+        page: page,
+        perPage: this.perPage
+      }
+    })
+    if (listResponse.statusCode === 200) {
+      this.loading = false
+      this.page = page
+      this.pages = listResponse.data.data.pagination.totalPages
+      this.courseList = this.courseList.concat(listResponse.data.data.list)
+      this.$apply()
+    }
+  }
+}
+</script>
+<style lang="less">
+  .course{
+    .banner-container{
+      .swiper-container{
+        display: flex;
+        height: 300rpx;
+        swiper-item{
+          height: 300rpx;
+          .swiper-item{
+            height: 300rpx;
+          }
+        }
+      }
+    }
+    .nav-container{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 10rpx;
+      background: #ffffff;
+      padding: 20rpx 0;
+      .nav-item{
+        flex: 1;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        .img{
+          width: 80rpx;
+          height: 80rpx;
+        }
+        .text{
+          font-size: 28rpx;
+        }
+      }
+    }
+    .course-container{
+      background: #ffffff;
+      padding: 0 30rpx;
+      padding-top: 20rpx;
+    }
+  }
+</style>

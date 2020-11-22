@@ -1,0 +1,30 @@
+<template>
+  <view class="container bg-ff">
+    <topNav title="关于我们" isShowBack="true"></topNav>
+    <view class="main-content" style="height:750px;">
+      <image class="" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/about.png"/>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+export default class AboutUs extends wepy.page {
+  config = {
+    navigationBarTitleText: '关于我们'
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    height: 0
+  }
+  onLoad () {
+    this.height = this.$parent.globalData.height + 56
+    this.$apply()
+  }
+}
+</script>
+<style lang="less">
+
+</style>

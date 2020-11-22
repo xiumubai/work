@@ -1,0 +1,69 @@
+<template>
+  <view class="container">
+    <topNav title="单词听写" isShowBack="true"></topNav>
+    <view class="main-container">
+      <view class="nav-tab" style="min-height: {{height}}px">
+        <van-tabs swipeable active="{{itemType - 1}}" line-width="24">
+          <!-- 英语-->
+          <van-tab title="英语">
+            <Item1 subject="3"></Item1>
+          </van-tab>
+          <!-- 语文 -->
+          <van-tab title="语文">
+            <Item2 subject="1"></Item2>
+          </van-tab>
+        </van-tabs>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+import DictationItem from '@/components/dictationItem'
+export default class DictationChapterList extends wepy.page {
+  config = {
+    navigationBarTitleText: '单词听写',
+    usingComponents: {
+      'van-tab': '../vant-weapp/tab/index',
+      'van-tabs': '../vant-weapp/tabs/index'
+    }
+  }
+  components = {
+    topNav: topNav,
+    Item1: DictationItem,
+    Item2: DictationItem
+  }
+  data = {
+    itemType: 1,
+    height: 0
+  }
+  methods = {
+    // 切换选项卡
+    tabChange (event) {
+      this.itemType = parseInt(event.detail.index) + 1
+      this.$invoke('Item' + this.itemType, 'getBookId')
+      this.$apply()
+    }
+  }
+  onLoad (options) {
+    if (options.itemType) {
+      this.itemType = parseInt(options.itemType) + 1
+      this.$apply()
+    }
+    this.height = this.$parent.globalData.winHeight
+    this.$apply()
+  }
+  onShow () {
+    this.$invoke('Item' + this.itemType, 'getBookId')
+  }
+  onReady () {}
+}
+</script>
+<style lang="less">
+  .nav-tab{
+    .van-tabs__line{
+      background-image: linear-gradient(to right, #FFC662, #FF7A26)
+    }
+  }
+</style>

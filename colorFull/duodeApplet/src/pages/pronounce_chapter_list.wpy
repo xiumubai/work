@@ -1,0 +1,37 @@
+<template>
+  <view class="container">
+    <topNav title="发音练习" isShowBack="true"></topNav>
+    <view class="main-container">
+      <Item subject="3"></Item>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+import PronounceItem from '@/components/pronounceItem'
+export default class PronounceChapterList extends wepy.page {
+  config = {
+    navigationBarTitleText: '发音练习',
+    usingComponents: {
+      'van-rate': '../vant-weapp/rate/index'
+    }
+  }
+  components = {
+    topNav: topNav,
+    Item: PronounceItem
+  }
+  data = {
+  }
+  methods = {
+  }
+  onLoad () {
+  }
+  onShow () {
+    this.$invoke('Item', 'getBookId')
+  }
+  onReady () {}
+}
+</script>
+<style lang="less">
+</style>

@@ -1,0 +1,538 @@
+<template>
+  <view class="container">
+    <topNav title="发音练习" isShowBack="true"></topNav>
+    <view class="main-content">
+      <view class="title-content" bindtap="bindLink">
+        <view class="text ellipsis-l1">{{pronunceList.bookNode.unit.name}} {{pronunceList.bookNode.name}}</view>
+        <view class="rignt-content">
+          <view class="sub-title">切换</view>
+          <view class="icon-right"></view>
+        </view>
+      </view>
+      <view class="progress-container">
+        <view class="text">当前进度</view>
+        <view class="progress-bar"><progress percent="{{percent}}" border-radius="10" stroke-width="15" color="#FFC662" backgroundColor="#CCC" /></view>
+        <view class="progress-num">{{length + 1}}/{{pronunceList.list.length}}</view>
+      </view>
+      <view class="word-container">
+        <view class="fanyi">{{pronunce.analysis}}</view>
+        <view class="word">{{pronunce.stem}}</view>
+        <view class="voice" bindtap="playAudio"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/icon_shengyin.png"/></view>
+        <view class="rate-content" wx:if="{{rateShow}}">
+          <view class="score">评分：{{pronunce.recorderRes.overall}}</view>
+          <van-rate readonly value="{{pronunce.recorderRes.rateval}}" icon="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/xingxing_active.png" void-icon="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/xingxing.png"/>
+        </view>
+      </view>
+      <view class="bushou-container">
+        <view wx:if="{{rateShow}}" class="rate-res">
+          <view>流畅度<text class="liuchang">{{pronunce.recorderRes.fluency}}</text></view>
+          <view>准确度<text class="zhunque">{{pronunce.recorderRes.pronunciation}}</text></view>
+          <view>完整度<text class="wanzheng">{{pronunce.recorderRes.integrity}}</text></view>
+        </view>
+        <view wx:else class="tip">{{recording ? '录音中，点击结束' : '点击下方按钮开始录音'}}</view>
+      </view>
+      <view class="btn-container">
+        <view class="btn-box">
+          <view class="prev btn-c {{length !== 0 ? 'active' : ''}}" bindtap="bindPrev">上一个</view>
+            <view class="bd1" bindtap="touchUp" wx:if="{{recording === true}}"><view class="bd2"><view class="bd3"><image mode="scaleToFill" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/icon_huatong.png"/></view></view></view>
+            <view class="bd" bindtap="touchDown" wx:else><image mode="scaleToFill" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/icon_huatong.png"/></view>
+          <view class="next btn-c {{length !==  pronunceList.list.length - 1 ? 'active' : ''}}" bindtap="bindNext">下一个</view>
+        </view>
+        <van-toast id="van-toast" />
+      </view>
+      <view class="explain-container" wx:if="{{pronunce.examples.length > 0}}">
+        <view class="header-title">
+          <view class="left">例句：</view>
+          <view class="right">
+            <repeat for="{{egtype}}" item="item" index="index" key="key">
+              <view class="item {{currentegtypeId === item.id ? 'active' : ''}}" bindtap="bindChangeEgType({{item.id}})">{{item.name}}</view>
+            </repeat>
+          </view>
+        </view>
+        <view class="ul">
+          <repeat for="{{pronunce.examples}}" item="item" key="key" index="index">
+            <view class="li">
+              <view class="text-box" wx:if="{{currentegtypeId === 1}}">
+                <view class="yingwen">{{item.content}}</view>
+                <view class="zhongwen">{{item.description}}</view>
+              </view>
+              <view class="text-box" wx:else>
+                <view wx:if="{{currentegtypeId === 2}}" class="yingwen">{{item.content}}</view>
+                <view wx:if="{{currentegtypeId === 3}}" class="zhongwen">{{item.description}}</view>
+              </view>
+              <view class="tingtong" bindtap="playEgAudio({{item.soundUrl}})"><image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/icon_shengyin.png"/></view>
+            </view>
+          </repeat>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+import api from '@/api/api'
+import request from '@/utils/request'
+import Toast from '../vant-weapp/toast/toast'
+const recorder = wx.getRecorderManager()
+const myaudio = wx.createInnerAudioContext()
+export default class PronounceEnglish extends wepy.page {
+  config = {
+    navigationBarTitleText: '发音练习',
+    usingComponents: {
+      'van-rate': '../vant-weapp/rate/index',
+      'van-toast': '../vant-weapp/toast/index'
+    }
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    recording: false,
+    rateShow: false,
+    isPlay: false,
+    fileBase64: '',
+    filePath: '',
+    nodeId: '',
+    currentegtypeId: 1,
+    percent: 0,
+    length: 0,
+    rate: 0,
+    overall: 0,
+    pronunceList: {},
+    pronunce: {},
+    params: {
+      isFinished: 1,
+      question: []
+    },
+    egtype: [{id: 1, name: '全部'}, {id: 2, name: '仅英文'}, {id: 3, name: '仅中文'}]
+  }
+  async onLoad (options) {
+    let that = this
+    this.subject = options.subject
+    this.nodeId = options.nodeId
+    this.$apply()
+    await this.fetchPronuncePractices()
+    recorder.onStop(e => {
+      // 保存录音文件的临时路径
+      that.filePath = e.tempFilePath
+      that.$apply()
+      that.submitRecorder()
+    })
+    myaudio.onEnded(() => {
+      this.isPlay = false
+      this.$apply()
+    })
+  }
+  onUnload () {
+    myaudio.stop()
+  }
+  onShow () {
+  }
+  methods = {
+    bindLink(url) {
+      myaudio.stop()
+      wx.navigateBack({
+        delta: 1
+      })
+    },
+    touchDown() {
+      let that = this
+      that.recording = true
+      this.stopAudio()
+      recorder.start({
+        duration: 60000,          // 最大时长
+        sampleRate: 16000,        // 采样率
+        numberOfChannels: 1,      // 录音通道数
+        encodeBitRate: 24000,     // 编码码率，有效值见下表格
+        format: 'mp3'             // 音频格式
+      })
+    },
+    touchUp(e) {
+      this.recording = false
+      recorder.stop()
+    },
+    bindChangeEgType (id) {
+      this.currentegtypeId = id
+    },
+    bindPrev () {
+      if (this.length > 0) {
+        this.recording = false
+        this.length -= 1
+        this.percent -= this.rate
+        this.pronunce = this.pronunceList.list[this.length]
+        if (this.pronunce.hasOwnProperty('recorderRes')) {
+          this.rateShow = true
+        } else {
+          this.rateShow = false
+        }
+        this.$apply()
+        this.playAudio()
+      } else {
+        Toast('已经是第一个了~')
+      }
+    },
+    bindNext () {
+      if (this.length + 1 < this.pronunceList.list.length) {
+        this.recording = false
+        this.length += 1
+        this.percent += this.rate
+        this.pronunce = this.pronunceList.list[this.length]
+        if (this.pronunce.hasOwnProperty('recorderRes')) {
+          this.rateShow = true
+        } else {
+          this.rateShow = false
+        }
+        this.$apply()
+        this.playAudio()
+      } else {
+        Toast('已经是最后一个了~')
+      }
+    },
+    playEgAudio(src) {
+      this.stopAudio()
+      if (!this.isPlay) {
+        myaudio.src = src
+        myaudio.play()
+        this.isPlay = true
+        this.$apply()
+      }
+    }
+  }
+  // 播放audio
+  playAudio () {
+    this.stopAudio()
+    if (!this.isPlay) {
+      myaudio.src = this.pronunce.stemAudio
+      myaudio.play()
+      this.isPlay = true
+      this.$apply()
+    }
+  }
+  // 暂停audio
+  stopAudio () {
+    myaudio.stop()
+    this.isPlay = false
+    this.$apply()
+  }
+
+  // 录音识别
+  async submitRecorder () {
+    let res = await request.updateFile({
+      url: api.pronounceEvaluate,
+      filePath: this.filePath,
+      name: 'audioFile',
+      formData: {
+        'text': this.pronunce.stem
+      }
+    })
+    let data = JSON.parse(res.data).data
+    if (data.errorCode === '0') {
+      this.rateShow = true
+      let recorderRes = {}
+      recorderRes.overall = Math.round(data.overall)
+      recorderRes.fluency = Math.round(data.fluency)
+      recorderRes.pronunciation = Math.round(data.pronunciation)
+      recorderRes.integrity = Math.round(data.integrity)
+      recorderRes.rateval = Math.round(data.overall / 20)
+      this.pronunceList.list.map(v => {
+        if (v.id === this.pronunce.id) {
+          v.recorderRes = recorderRes
+          this.pronunce = v
+        }
+      })
+      let options = {
+        id: this.pronunce.id,
+        starNumber: this.rateval,
+        evaluate: data
+      }
+      this.params.question.push(options)
+      this.$apply()
+      // 测评结束
+      if (this.length === this.pronunceList.list.length - 1) {
+        this.submitAnswer()
+      }
+    } else {
+      Toast('识别失败~')
+    }
+  }
+  async submitAnswer () {
+    let res = await request.authRequest({
+      url: api.pronounceAnswers,
+      method: 'POST',
+      data: this.params
+    })
+    if (res.statusCode === 200) {
+      wepy.reLaunch({
+        url: 'learn_canlendar?backHome=true'
+      })
+    }
+  }
+  // 发音练习题列表
+  async fetchPronuncePractices () {
+    let res = await request.authRequest({
+      url: api.pronouncePractices,
+      data: {
+        subject: this.subject,
+        nodeId: this.nodeId
+      }
+    })
+    if (res.statusCode === 200) {
+      let data = res.data.data
+      this.pronunceList = data
+      this.params.groupId = data.groupId
+      this.params.scene = data.scene
+      this.pronunce = this.pronunceList.list[0]
+      this.rate = 100 / this.pronunceList.list.length
+      this.percent = this.rate
+      this.$apply()
+      this.playAudio()
+    }
+  }
+}
+</script>
+<style lang="less">
+.main-content{
+  padding: 0 15px;
+  .title-content{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    padding: 0 10px;
+    .text{
+      color: #333;
+      font-size: 16px;
+    }
+    .rignt-content{
+      display: flex;
+      align-items: center;
+      .sub-title{
+        color: #999;
+        font-size: 14px;
+        margin-right: 5px;
+      }
+    }
+  }
+  .progress-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top:10px;
+    .text{
+      font-size: 14px;
+      color: #999999;
+    }
+    .progress-bar{
+      flex: 155px 0 0;
+      margin: 0 10px;
+    }
+    .progress-num{
+      font-size: 14px;
+      color: #999999;
+    }
+  }
+  .word-container{
+    background: #fff;
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    padding: 0 15px;
+    box-sizing: border-box;
+    .fanyi{
+      font-size: 20px;
+      color: #333;
+      margin-top: 58px;
+      margin-bottom: 30px;
+    }
+    .word{
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 116px;
+    }
+    .voice{
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 39px;
+      height: 39px;
+    }
+    .rate-content{
+      position: absolute;
+      text-align: center;
+      bottom: 30px;
+      .score{
+        margin-bottom: 10px;
+        color: #83DB25;
+      }
+    }
+  }
+  .bushou-container{
+    display: flex;
+    padding: 10px;
+    background: #fff;
+    margin-top: 22px;
+    border-radius: 5px;
+    .tip{
+      flex: 1;
+      text-align: center;
+      font-size: 16px;
+      color: #999;
+    }
+    .rate-res{
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      view{
+        font-size: 12px;
+        color: #999;
+      }
+      .liuchang{
+        color: #E54343;
+        margin-left: 5px;
+      }
+      .zhunque{
+        color: #83DB25;
+        margin-left: 5px;
+      }
+      .wanzheng{
+        color: #FC9047;
+        margin-left: 5px;
+      }
+    }
+  }
+  .btn-container{
+    display: flex;
+    justify-content: center;
+    margin: 30px 0;
+    .btn-box{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 232px;
+      height: 42px;
+      background: #fff;
+      border-radius: 21px;
+      box-shadow:0 8px 12px rgba(255,189,90,0.2);
+      .btn-nostyle{
+        border-radius:50%;
+      }
+      .bd{
+        width: 62px;
+        height: 62px;
+        background: #FFC662;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        image{
+          border-radius: 50%;
+        }
+      }
+      .bd1{
+        padding: 8px;
+        background: #FFF0D6;
+        border-radius: 50%;
+        animation: loading-content 2s ease-in-out infinite;
+        .bd2{
+          padding: 8px;
+          background: #FFE0AA;
+          border-radius: 50%;
+          animation: loading-content 2s ease-in-out infinite;
+          .bd3{
+            width: 62px;
+            height: 62px;
+            background: #FFC662;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+            z-index: 10;
+            image{
+              border-radius: 50%;
+            }
+          }
+        }
+      }
+      @keyframes loading-content {
+        0% {
+          opacity: 0.6;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+      .btn-c{
+        font-size: 16px;
+        color: #DDDDDD;
+        &.active{
+          color: #FFC662;
+        }
+        &.prev{
+          margin-left: 10px;
+        }
+        &.next{
+          margin-right: 10px;
+        }
+      }
+    }
+  }
+  .explain-container{
+    background: #fff;
+    padding: 20px 10px;
+    border-radius: 5px;
+    margin-bottom: 76px;
+    .header-title{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      .left{
+        font-size: 16px;
+        color: #333;
+      }
+      .right{
+        display: flex;
+        padding: 2px;
+        border: 1px solid #FFC662;
+        border-radius: 15px;
+        .item{
+          color: #666;
+          padding: 2px 10px;
+          font-size: 12px;
+          &.active{
+            color: #fff;
+            background: #FFC662;
+            border-radius: 11px;
+          }
+        }
+      }
+    }
+    .ul{
+      margin-top: 16px;
+      .li{
+        display: flex;
+        margin-bottom: 20px;
+        .text-box{
+          flex: 1;
+          view{
+            padding-left: 16px;
+            font-size: 14px;
+            color: #666;
+          }
+        }
+        .tingtong{
+          width: 39px;
+          height: 39px;
+        }
+      }
+    }
+  }
+}
+</style>

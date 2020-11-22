@@ -1,0 +1,240 @@
+<template>
+  <view class="container">
+    <topNav title="修改资料" isShowBack="true"></topNav>
+    <view class="main-content">
+      <view class="info-edit bg-ff">
+        <view class="avatar">
+          <image src="{{avatar}}"/>
+        </view>
+        <view class="list">
+          <view class="item flex">
+            <view class="fz30 c999 flex1">昵称</view>
+            <view>
+              <input value="{{nickName}}" bindblur="bindblurNickName" placeholder="请填写昵称" placeholder-style="color: #333"/>
+            </view>
+          </view>
+          <view class="item flex">
+            <view class="fz30 c999 flex1">宝宝生日</view>
+            <view class="flex">
+              <picker mode="date" value="{{birthday}}" start="1990" end="2019" bindchange="bindDateChange">
+                <view class="picker-date flex">
+                  <view class="text fz30 mr-12">{{birthday ? birthday : '点击选择宝宝生日'}}</view>
+                  <view class="icon-right"></view>
+                </view>
+              </picker>
+            </view>
+          </view>
+          <view class="item flex">
+            <view class="fz30 c999 flex1">宝宝姓名</view>
+            <view>
+              <input value="{{name}}" bindblur="bindblurName" placeholder="请填写宝宝的姓名" placeholder-style="color: #333"/>
+            </view>
+          </view>
+          <view class="item flex">
+            <view class="fz30 c999 flex1">宝宝性别</view>
+            <view class="flex sex">
+              <view class="flex" @tap="selectSex" data-sex="1">
+                <view class="icon_sex">
+                  <image wx:if="{{sex === 1}}" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_male_active.png"/>
+                  <image wx:else src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_male.png"/>
+                </view>
+                <view>小王子</view>
+              </view>
+              <view class="flex female" @tap="selectSex" data-sex="2">
+                <view class="icon_sex">
+                  <image wx:if="{{sex === 2}}" src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_female_active.png"/>
+                  <image wx:else src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/icon_female.png"/>
+                </view>
+                <view>小公主</view>
+              </view>
+            </view>
+          </view>
+          <view class="item flex">
+            <view class="fz30 c999 flex1">城市</view>
+            <view class="flex">
+              <picker mode="region" bindchange="bindRegionChange" value="{{region}}" custom-item="{{customItem}}">
+                <view class="picker flex">
+                  <view class="text fz30 mr-12">{{region[0]}}，{{region[1]}}，{{region[2]}}</view>
+                  <view class="icon-right"></view>
+                </view>
+              </picker>
+            </view>
+          </view>
+        </view>
+      </view>
+      <button class="btn" @tap="submitMyInfo">保存</button>
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import topNav from '@/components/topNav'
+import request from '@/utils/request'
+import api from '@/api/api'
+import {
+  USER_INFO
+} from '@/utils/constant'
+export default class InfoEdit extends wepy.page {
+  config = {
+    navigationBarTitleText: '修改资料'
+  }
+  components = {
+    topNav: topNav
+  }
+  data = {
+    userinfo: null,
+    avatar: '',
+    nickName: '',
+    birthday: '',
+    name: '',
+    sex: 0,
+    province: '',
+    city: '',
+    area: '',
+    region: []
+  }
+  methods = {
+    bindblurNickName (e) {
+      this.nickName = e.detail.value
+    },
+    bindblurName (e) {
+      this.name = e.detail.value
+    },
+    selectSex (e) {
+      const sex = Number(e.currentTarget.dataset.sex)
+      if (this.sex === sex || this.sex === 0) {
+        this.sex = sex
+      } else if (this.sex === 1) {
+        this.sex = 2
+      } else if (this.sex === 2) {
+        this.sex = 1
+      }
+      this.$apply()
+    },
+    bindDateChange (e) {
+      this.birthday = e.detail.value
+      this.$apply()
+    },
+    bindRegionChange (e) {
+      this.region = e.detail.value
+      this.province = this.region[0]
+      this.city = this.region[1]
+      this.area = this.region[2]
+      this.$apply()
+    },
+    async submitMyInfo () {
+      let params = {
+        avatar: this.avatar,
+        nickname: this.nickName,
+        province: this.province,
+        city: this.city,
+        area: this.area,
+        kid: {
+          birthday: this.birthday,
+          name: this.name,
+          sex: this.sex
+        }
+      }
+      let userinfoResponse = await request.authRequest({
+        url: api.myinfo,
+        method: 'PUT',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        data: params
+      }, false)
+      if (userinfoResponse.statusCode === 200) {
+        let userinfo = userinfoResponse.data.data
+        wepy.setStorageSync(USER_INFO, userinfo)
+        wepy.showToast({
+          title: '修改成功',
+          icon: 'success',
+          duration: 2000
+        })
+        wepy.reLaunch({
+          url: '/pages/info'
+        })
+      }
+    }
+  }
+  async onLoad () {
+    // 获取我的信息
+    let userinfoResponse = await request.authRequest({
+      url: api.myinfo,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      data: {
+        formId: ''
+      }
+    }, false)
+    if (userinfoResponse.statusCode === 200) {
+      this.userinfo = userinfoResponse.data.data
+      this.nickName = this.userinfo.nickname
+      this.avatar = this.userinfo.avatar
+      this.birthday = this.userinfo.kid.birthday
+      this.sex = this.userinfo.kid.sex
+      this.name = this.userinfo.kid.name
+      this.province = this.userinfo.province
+      this.city = this.userinfo.city
+      this.area = this.userinfo.area
+      this.region = [this.province, this.city, this.area]
+      this.$apply()
+    }
+  }
+}
+</script>
+<style lang="less">
+page{
+  background: #f5f5f5;
+}
+.info-edit{
+  padding-top: 60rpx;
+  margin-bottom: 100rpx;
+  .avatar{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    image{
+      width: 236rpx;
+      height: 236rpx;
+      border-radius: 50%;
+    }
+  }
+  .list{
+    margin-left: 40rpx;
+    .item{
+      padding: 30rpx 0;
+      padding-right: 40rpx;
+      border-bottom: 1rpx solid #F3F3F3;
+      input{
+        text-align: right;
+      }
+      .sex{
+        .female{
+          margin-left: 40rpx;
+        }
+        .icon_sex{
+          width: 64rpx;
+          height: 64rpx;
+          background: #F3F3F3;
+          border-radius: 50%;
+          margin-right: 20rpx;
+        }
+      }
+    }
+  }
+}
+.btn{
+  width: 266rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: #FA6400;
+  border-radius: 44rpx;
+  color: #ffffff;
+  font-size: 30rpx;
+}
+</style>

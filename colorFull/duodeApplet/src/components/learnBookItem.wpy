@@ -1,0 +1,265 @@
+<template>
+  <view class="content-wraper">
+    <view class="title-wraper" bindtap="bindlink('book_list')">
+      <text class="text">{{list.gradeName}}{{list.termName}}</text>
+      <view class="right">
+        <image src="https://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/you.png"/>
+      </view>
+    </view>
+    <repeat for="{{list.chapters}}" item="chapter" key="key" index="index">
+      <view class="content">
+        <view class="title-wraper">
+          <view class="text">{{chapter.name}}</view>
+        </view>
+        <view class="ul">
+          <repeat for="{{chapter.children}}" item="lesson" key="key" index="index">
+            <view class="li" bindtap="bindlinkToDialog({{lesson.id}})">
+              <view class="left">
+                <image src="http://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/icon_dengpao.png"/>
+              </view>
+              <view class="center">
+                <view class="title">{{lesson.name}}</view>
+                <view class="sub-title">
+                  <view class="left-title sub-title-box" wx:if="{{lesson.sentenceNumber > 0}}">
+                    <view class="img" style="width: 20rpx; height: 24rpx;"><image src="https://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/icon_word1.png"/></view>
+                    <view class="text">词句{{lesson.sentenceNumber}}个</view>
+                  </view>
+                  <view class="left-title sub-title-box" wx:if="{{lesson.hanziNumber > 0}}">
+                    <view class="img" style="width: 20rpx; height: 24rpx;"><image src="https://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/icon_word1.png"/></view>
+                    <view class="text">生字{{lesson.hanziNumber}}个</view>
+                  </view>
+                  <view class="right-title sub-title-box" wx:if="{{lesson.syncPracticeNumber > 0}}">
+                    <view class="img" style="width: 26rpx; height: 26rpx;"><image src="https://duode-applet.oss-cn-hangzhou.aliyuncs.com/static/images/index/icon_word2.png"/></view>
+                    <view class="text">练习题{{lesson.syncPracticeNumber}}个</view>
+                  </view>
+                </view>
+              </view>
+              <view class="right">
+                <view class="section">
+                  <view class="wrap">
+                    <!--大于180，则class=clip-auto circle，否则：circle-->
+                    <view class="circle {{lesson.learningProgress * 3.6 > 180 ? 'clip-auto' : ''}}">
+                      <!--度数为：当前进度*3.6-->
+                      <view class="percent percent-left" style="transform: rotate({{lesson.learningProgress * 3.6}}deg)"></view>
+                      <!--大于180，则class=percent right，否则为percent right wth0-->
+                      <view class="percent percent-right {{lesson.learningProgress * 3.6 < 180 ? 'wth0' : ''}}"></view>
+                    </view>
+                    <view class="num">{{lesson.learningProgress}}%</view>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </repeat>
+        </view>
+      </view>
+    </repeat>
+    <view class="tips">本学期完</view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy'
+import api from '@/api/api'
+import request from '@/utils/request'
+export default class LearnBookItem extends wepy.component {
+  props = {
+    subject: {
+      type: String,
+      value: ''
+    },
+    itemType: {
+      type: String,
+      value: ''
+    }
+  }
+  data = {
+    bookId: '',
+    list: {},
+    type: ''
+  }
+  methods = {
+    bindlink (url) {
+      this.type = this.subject === '3' ? 11 : this.subject === '1' ? 12 : 13
+      this.$parent.$parent.globalData.bookOptionsType = parseInt(this.type)
+      wx.navigateTo({
+        url: url + '?subject=' + this.subject + '&gradeId=' + this.list.gradeId + '&term=' + this.list.term + '&apiUrl=' + api.learningBooks
+      })
+    },
+    bindlinkToDialog (id) {
+      wx.navigateTo({
+        url: 'dialog_practice?id=' + id + '&subject=' + this.subject
+      })
+    }
+  }
+  async onLoad() {
+    await request.getCurrentUser()
+    await this.fetchList()
+  }
+  async fetchList () {
+    let res = await request.authRequest({
+      url: api.learningChapters,
+      data: {
+        subject: this.subject,
+        bookId: this.bookId
+      }
+    })
+    this.list = res.data.data
+    this.$apply()
+  }
+  async getBookId () {
+    this.type = this.subject === '3' ? 11 : this.subject === '1' ? 12 : 13
+    await this.$parent.$parent.globalData.bookOptionsParams.map(v => {
+      if (v.type === this.type && v.hasOwnProperty('bookId')) {
+        this.bookId = v.bookId
+        this.$apply()
+        this.fetchList()
+      }
+    })
+  }
+}
+</script>
+<style lang="less">
+  .content-wraper{
+    padding: 0 30rpx;
+    .title-wraper{
+      height: 100rpx;
+      line-height: 100rpx;
+      display: flex;
+      align-items: center;
+      .text{
+        font-size: 14px;
+        color: #999;
+        margin-right: 10rpx
+      }
+      .right{
+        height: 26rpx;
+        width: 26rpx;
+      }
+    }
+    .content{
+      background: #fff;
+      border-radius: 20rpx;
+      padding: 0 30rpx;
+      margin-bottom: 30rpx;
+      .title-wraper{
+        height: 100rpx;
+        line-height: 100rpx;
+        .text{
+          font-size: 14px;
+          color: #333;
+        }
+      }
+      .ul{
+        .li{
+          padding: 30rpx 0;
+          border-top: 1px solid #F0F0F0;
+          display: flex;
+          .left{
+            flex: 30rpx 0 0;
+            width: 30rpx;
+            height: 30rpx;
+            margin-right: 30rpx;
+            background: #FFF0D1;
+            border-radius: 50%;
+            margin-top: 6rpx;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          .center{
+            flex: 1;
+            .title{
+              margin-bottom: 20rpx;
+            }
+            .sub-title{
+              display: flex;
+              align-items: center;
+              width: 100%;
+              .sub-title-box{
+                display: flex;
+                align-items: center;
+                margin-right: 20rpx;
+                background: #F7F7F7;
+                border-radius: 10rpx;
+                padding: 4rpx 10rpx;
+                .text{
+                  font-size: 12px;
+                  color: #999;
+                }
+                .img{
+                  margin-right: 8rpx;
+                }
+              }
+            }
+
+          }
+          .right{
+            flex: 42px 0 0;
+            margin-top: 6rpx;
+          }
+        }
+      }
+    }
+    .tips{
+      font-size: 12px;
+      color: #999;
+      padding-bottom:  30rpx;
+      text-align: center;
+    }
+  }
+  .section{
+    width: 42px; 
+    height: 42px;
+    position: relative;
+    .wrap, .circle, .percent{
+      position: absolute;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+    }
+    .wrap{
+      background: #FFF0D1;
+      border-radius: 50%;
+      top: 0;
+      left: 0;
+    }
+    .circle{
+      box-sizing: border-box;
+      border-radius: 50%;
+      border: 2px solid #FFF0D1;
+      clip: rect(0, 42px, 42px, 21px)
+    }
+    .clip-auto{
+      clip: rect(auto, auto, auto, auto);
+    }
+    .percent{
+      box-sizing: border-box;
+      border-radius: 50%;
+      top: -2px;
+      left: -2px;
+    }
+    .percent-left{
+      border: 2px solid #FFBE5C;
+      clip: rect(0, 21px, 42px, 0);
+    }
+    .percent-right{
+      border: 2px solid #FFBE5C;
+      clip: rect(0, 42px, 42px, 21px);
+    }
+    .wth0{width:0;}
+    .num{
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      box-sizing: border-box;
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      line-height: 38px;
+      text-align: center;
+      font-size: 12px;
+      color: #FFBD5B;
+      background: #fff;
+      z-index: 1;
+    }
+  }
+</style>

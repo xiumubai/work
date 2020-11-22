@@ -1,0 +1,63 @@
+<template>
+  <view class="popup-container">
+    <view class="popup-bg" @tap="closePopup"></view>
+    <view class="popup-content">
+      <slot name="title"></slot>
+    </view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+
+  export default class Popup extends wepy.component {
+    props = {
+      isPopupShow: {
+        type: Boolean,
+        value: false
+      }
+    }
+    data = {
+      height: 0
+    }
+    methods = {
+      closePopup () {
+        this.$emit('bindPopupFn', false)
+      }
+    }
+    onLoad () {
+  
+    }
+  }
+</script>
+<style lang="less">
+  .popup-container{
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    .popup-bg{
+      height: 60%;
+    }
+    .popup-content{
+      background-color: #fff;
+      position: absolute;
+      max-height: 80%;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      overflow: auto;
+    }
+    .popup-show{
+      transition: all 0.3s;
+      max-height: 80%;
+    }
+    .popup-hide{
+      transition: all 0.3s;
+      height: 0;
+    }
+  }
+  
+</style>
